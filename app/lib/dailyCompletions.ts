@@ -1,6 +1,7 @@
 import { db } from './firebase';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { getTodayDateString } from './dailyPuzzle';
+import { logAuditEvent } from './auditLog';
 
 export interface DailyCompletion {
   date: string;
@@ -52,6 +53,20 @@ export async function recordDailyCompletion(
         await updateDoc(userCompletionsRef, {
           [`completions.${dateString}`]: completion,
         });
+        
+        // Log completion event
+        if (completion.completed) {
+          await logAuditEvent('puzzle_completed', userId, undefined, { 
+            date: dateString, 
+            time: completion.completionTime 
+          }, 'info');
+        } else {
+          await logAuditEvent('puzzle_incomplete', userId, undefined, { 
+            date: dateString, 
+            time: completion.completionTime,
+            reason: 'showed_all_sets'
+          }, 'info');
+        }
       }
     } else {
       // Create new document
@@ -61,6 +76,20 @@ export async function recordDailyCompletion(
           [dateString]: completion,
         },
       });
+      
+      // Log completion event
+      if (completion.completed) {
+        await logAuditEvent('puzzle_completed', userId, undefined, { 
+          date: dateString, 
+          time: completion.completionTime 
+        }, 'info');
+      } else {
+        await logAuditEvent('puzzle_incomplete', userId, undefined, { 
+          date: dateString, 
+          time: completion.completionTime,
+          reason: 'showed_all_sets'
+        }, 'info');
+      }
     }
   } catch (error: any) {
     const isDev = process.env.NODE_ENV === 'development';

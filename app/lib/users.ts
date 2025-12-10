@@ -1,5 +1,6 @@
 import { db } from './firebase';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { logAuditEvent } from './auditLog';
 
 /**
  * Check if a user exists and is approved in Firestore
@@ -69,9 +70,19 @@ export async function updateDisplayName(email: string, displayName: string): Pro
   // Validate display name
   const trimmed = displayName.trim();
   if (trimmed.length < 1 || trimmed.length > 50) {
+    await logAuditEvent('invalid_input', undefined, email, { 
+      field: 'displayName', 
+      reason: 'invalid_length',
+      value: displayName.substring(0, 100) // Truncate for logging
+    }, 'warning');
     throw new Error('Display name must be 1-50 characters');
   }
   if (!/^[a-zA-Z0-9_\s-]+$/.test(trimmed)) {
+    await logAuditEvent('invalid_input', undefined, email, { 
+      field: 'displayName', 
+      reason: 'invalid_characters',
+      value: displayName.substring(0, 100) // Truncate for logging
+    }, 'warning');
     throw new Error('Display name can only contain letters, numbers, spaces, hyphens, and underscores');
   }
   
@@ -80,6 +91,10 @@ export async function updateDisplayName(email: string, displayName: string): Pro
     await setDoc(docRef, {
       displayName: trimmed,
     }, { merge: true });
+    
+    await logAuditEvent('displayname_changed', undefined, email, { 
+      newDisplayName: trimmed 
+    }, 'info');
   } catch (error) {
     const isDev = process.env.NODE_ENV === 'development';
     if (isDev) console.error('Error updating display name:', error);

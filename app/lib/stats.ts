@@ -21,7 +21,6 @@ export interface UserStats {
 
 export interface LeaderboardEntry {
   userId: string;
-  email: string;
   displayName: string;
   time: number;
   date: string;
@@ -93,7 +92,6 @@ export async function getDailyLeaderboard(date: string): Promise<LeaderboardEntr
         const userData = await getUserData(data.userId);
         leaderboard.push({
           userId: doc.id,
-          email: data.userId,
           displayName: userData?.displayName || data.userId.split('@')[0],
           time: completion.completionTime,
           date,
@@ -139,7 +137,6 @@ export async function getAllTimeBestLeaderboard(limitCount: number = 50): Promis
         const userData = await getUserData(data.userId);
         allBestTimes.push({
           userId: doc.id,
-          email: data.userId,
           displayName: userData?.displayName || data.userId.split('@')[0],
           time: bestTime,
           date: bestDate,
@@ -161,7 +158,6 @@ export async function getAllTimeBestLeaderboard(limitCount: number = 50): Promis
  */
 export async function getAverageTimeLeaderboard(limitCount: number = 50): Promise<Array<{
   userId: string;
-  email: string;
   displayName: string;
   averageTime: number;
   totalCompletions: number;
@@ -172,7 +168,6 @@ export async function getAverageTimeLeaderboard(limitCount: number = 50): Promis
     
     const averages: Array<{
       userId: string;
-      email: string;
       displayName: string;
       averageTime: number;
       totalCompletions: number;
@@ -191,7 +186,6 @@ export async function getAverageTimeLeaderboard(limitCount: number = 50): Promis
         const userData = await getUserData(data.userId);
         averages.push({
           userId: doc.id,
-          email: data.userId,
           displayName: userData?.displayName || data.userId.split('@')[0],
           averageTime,
           totalCompletions: validCompletions.length,
