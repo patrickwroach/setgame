@@ -36,7 +36,12 @@ export default function SetCard({ card, isSelected, isInSet = false, setLabels =
       fillColor = 'none';
     }
 
-    const baseY = 20 + shapeIndex * 30;
+    // Calculate vertical centering based on number of shapes
+    const shapeHeight = 20;
+    const spacing = 8;
+    const totalHeight = card.number * shapeHeight + (card.number - 1) * spacing;
+    const startY = (100 - totalHeight) / 2;
+    const baseY = startY + shapeIndex * (shapeHeight + spacing) + shapeHeight / 2;
 
     switch (card.shape) {
       case 'diamond':
@@ -66,7 +71,13 @@ export default function SetCard({ card, isSelected, isInSet = false, setLabels =
         return (
           <path
             key={shapeIndex}
-            d={`M 30 ${baseY + 10} Q 35 ${baseY} 45 ${baseY + 5} Q 55 ${baseY + 10} 70 ${baseY + 5} Q 65 ${baseY + 20} 55 ${baseY + 15} Q 45 ${baseY + 10} 30 ${baseY + 15} Q 30 ${baseY + 10} 30 ${baseY + 10}`}
+            d={`M 30 ${baseY + 10} 
+                C 30 ${baseY + 3} 35 ${baseY} 42 ${baseY + 2}
+                C 48 ${baseY + 4} 53 ${baseY + 8} 58 ${baseY + 6}
+                C 63 ${baseY + 4} 68 ${baseY + 7} 70 ${baseY + 10}
+                C 70 ${baseY + 17} 65 ${baseY + 20} 58 ${baseY + 18}
+                C 52 ${baseY + 16} 47 ${baseY + 12} 42 ${baseY + 14}
+                C 37 ${baseY + 16} 32 ${baseY + 13} 30 ${baseY + 10} Z`}
             fill={fillColor}
             stroke={color}
             strokeWidth={strokeWidth}
