@@ -1,46 +1,109 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, generateBoardWithSets, isValidSet, findAllSets } from '../lib/setLogic';
+import { Card, isValidSet, findAllSets } from '../lib/setLogic';
+import { generateDailyPuzzle, getTodayDateString } from '../lib/dailyPuzzle';
+import { recordDailyCompletion, getTodayCompletion } from '../lib/dailyCompletions';
+import { useAuth } from '../contexts/AuthContext';
 import SetCard from './SetCard';
-import Timer from './Timer';
 
-export default function SetGame() {
+interface SetGameProps {
+  onShowSetsClick: () => void;
+  showingSets: boolean;
+  onFoundSetsChange: (count: number) => void;
+  onTimerChange: (startTime: number, isRunning: boolean) => void;
+}
+
+export default function SetGame({ onShowSetsClick, showingSets: externalShowingSets, onFoundSetsChange, onTimerChange }: SetGameProps) {
+  const { user } = useAuth();
   const [board, setBoard] = useState<Card[]>([]);
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const [foundSets, setFoundSets] = useState<Set<string>>(new Set());
   const [message, setMessage] = useState<string>('');
   const [showingSets, setShowingSets] = useState<boolean>(false);
+  
+  // Sync with external showingSets prop
+  useEffect(() => {
+    setShowingSets(externalShowingSets);
+  }, [externalShowingSets]);
   const [allSets, setAllSets] = useState<number[][]>([]);
   const [timerStartTime, setTimerStartTime] = useState<number>(Date.now());
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
   const [completionTime, setCompletionTime] = useState<number | null>(null);
+  const [hasShownSets, setHasShownSets] = useState<boolean>(false);
+  const [todayCompleted, setTodayCompleted] = useState<boolean>(false);
+  const [currentDate, setCurrentDate] = useState<string>('');
 
+  // Safety check: Only load puzzle if user is authenticated
   useEffect(() => {
-    newGame();
-  }, []);
+    if (user) {
+      loadDailyPuzzle();
+    }
+  }, [user]);
 
-  const newGame = () => {
-    const newBoard = generateBoardWithSets(4);
-    setBoard(newBoard);
+  const loadDailyPuzzle = async () => {
+    const dateString = getTodayDateString();
+    setCurrentDate(dateString);
+    const dailyBoard = generateDailyPuzzle(dateString, 4, 12);
+    setBoard(dailyBoard);
     setSelectedCards([]);
     setFoundSets(new Set());
     setShowingSets(false);
-    setAllSets(findAllSets(newBoard));
-    setMessage('Find the sets! Board has 4 valid sets.');
-    setTimerStartTime(Date.now());
+    setHasShownSets(false);
+    setAllSets(findAllSets(dailyBoard));
+    const newStartTime = Date.now();
+    setTimerStartTime(newStartTime);
     setIsTimerRunning(true);
+    onTimerChange(newStartTime, true);
     setCompletionTime(null);
-  };
-
-  const toggleShowSets = () => {
-    setShowingSets(!showingSets);
-    if (!showingSets) {
-      setMessage('💡 Showing all sets');
+    
+    // Check if user already completed today's puzzle
+    if (user) {
+      const completion = await getTodayCompletion(user.uid);
+      if (completion?.completed) {
+        setTodayCompleted(true);
+        setIsTimerRunning(false);
+        onTimerChange(timerStartTime, false);
+        setCompletionTime(completion.completionTime);
+        setMessage(`✅ You already completed today's puzzle in ${formatTime(completion.completionTime)}!`);
+      } else if (completion?.showedAllSets) {
+        setTodayCompleted(true);
+        setIsTimerRunning(false);
+        onTimerChange(timerStartTime, false);
+        setMessage(`⚠️ You showed all sets today - marked as incomplete`);
+      } else {
+        setTodayCompleted(false);
+        setMessage('Find the sets! Today\'s daily puzzle has 4 valid sets.');
+      }
     } else {
-      setMessage('');
+      setMessage('Find the sets! Today\'s daily puzzle has 4 valid sets.');
     }
   };
+
+
+  // Handle show sets from parent
+  useEffect(() => {
+    const handleShowSets = async () => {
+      if (externalShowingSets && !hasShownSets) {
+        setHasShownSets(true);
+        setIsTimerRunning(false);
+        onTimerChange(timerStartTime, false);
+        
+        // Record as incomplete if user shows all sets
+        if (user && !todayCompleted) {
+          const timeElapsed = (Date.now() - timerStartTime) / 1000;
+          await recordDailyCompletion(user.uid, timeElapsed, true);
+          setTodayCompleted(true);
+          setMessage('💡 Showing all sets - marked as incomplete');
+        } else {
+          setMessage('💡 Showing all sets');
+        }
+      } else if (!externalShowingSets && message.includes('💡')) {
+        setMessage('');
+      }
+    };
+    handleShowSets();
+  }, [externalShowingSets, hasShownSets, user, todayCompleted, timerStartTime, message]);
 
   const getSetKey = (indices: number[]) => {
     return indices.sort((a, b) => a - b).join(',');
@@ -48,14 +111,19 @@ export default function SetGame() {
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const secs = (seconds % 60).toFixed(1);
     if (mins > 0) {
       return `${mins}m ${secs}s`;
     }
     return `${secs}s`;
   };
 
-  const handleCardClick = (index: number) => {
+  const handleCardClick = async (index: number) => {
+    // Require authentication to play
+    if (!user) {
+      return;
+    }
+
     if (selectedCards.includes(index)) {
       setSelectedCards(selectedCards.filter(i => i !== index));
       return;
@@ -78,12 +146,21 @@ export default function SetGame() {
           const newFoundSets = new Set(foundSets);
           newFoundSets.add(setKey);
           setFoundSets(newFoundSets);
+          onFoundSetsChange(newFoundSets.size);
           
           // Check if puzzle is completed
           if (newFoundSets.size === 4) {
-            const timeElapsed = Math.floor((Date.now() - timerStartTime) / 1000);
+            const timeElapsed = (Date.now() - timerStartTime) / 1000;
             setCompletionTime(timeElapsed);
             setIsTimerRunning(false);
+            onTimerChange(timerStartTime, false);
+            
+            // Record completion if user hasn't shown all sets and hasn't completed today
+            if (user && !hasShownSets && !todayCompleted) {
+              await recordDailyCompletion(user.uid, timeElapsed, false);
+              setTodayCompleted(true);
+            }
+            
             setMessage(`🎉 You found all 4 sets in ${formatTime(timeElapsed)}!`);
           } else {
             setMessage('✅ Valid Set!');
@@ -128,39 +205,11 @@ export default function SetGame() {
   };
 
   return (
-    <div className="mx-auto px-4 max-w-5xl">
-      <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
-        <div className="flex items-center gap-4">
-          <div className="font-semibold text-gray-700 text-lg">
-            Sets Found: {foundSets.size} / 4
-          </div>
-          <Timer 
-            isRunning={isTimerRunning} 
-            startTime={timerStartTime}
-          />
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={toggleShowSets}
-            className={`${
-              showingSets ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-600 hover:bg-gray-700'
-            } shadow-lg px-4 py-2 rounded-lg font-bold text-white transition-colors text-sm md:text-base`}
-          >
-            {showingSets ? 'Hide Sets' : 'Show All Sets'}
-          </button>
-          <button
-            onClick={newGame}
-            className="bg-blue-600 hover:bg-blue-700 shadow-lg px-4 md:px-6 py-2 rounded-lg font-bold text-white text-sm md:text-base transition-colors"
-          >
-            New Game
-          </button>
-        </div>
-      </div>
-
-      {message && (
-        <div className={`text-center text-lg font-bold mb-4 p-2 rounded-lg ${
+    <div className="flex flex-col h-full">
+      {/* Only show message for completion or important states */}
+      {(message.includes('✅') || message.includes('🎉') || message.includes('⚠️') || message.includes('💡')) && (
+        <div className={`text-center text-lg font-bold mb-3 p-3 rounded-lg ${
           message.includes('✅') ? 'bg-green-100 text-green-800' :
-          message.includes('❌') ? 'bg-red-100 text-red-800' :
           message.includes('🎉') ? 'bg-yellow-100 text-yellow-800' :
           message.includes('⚠️') ? 'bg-orange-100 text-orange-800' :
           message.includes('💡') ? 'bg-purple-100 text-purple-800' :
@@ -171,7 +220,7 @@ export default function SetGame() {
       )}
 
       {showingSets && (
-        <div className="bg-purple-50 mb-4 p-3 border border-purple-200 rounded-lg">
+        <div className="bg-purple-50 mb-3 p-3 border border-purple-200 rounded-lg">
           <div className="mb-2 font-semibold text-purple-800 text-sm">All Sets on Board:</div>
           <div className="space-y-1">
             {allSets.map((set, idx) => {
@@ -189,7 +238,7 @@ export default function SetGame() {
         </div>
       )}
 
-      <div className="gap-3 grid grid-cols-3 md:grid-cols-4 max-h-[calc(100vh-200px)]">
+      <div className="gap-2 sm:gap-3 grid grid-cols-3 md:grid-cols-4">
         {board.map((card, index) => (
           <SetCard
             key={index}

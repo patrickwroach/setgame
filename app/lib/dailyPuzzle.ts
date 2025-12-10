@@ -15,8 +15,10 @@ class SeededRandom {
 }
 
 export function getTodayDateString(): string {
+  // Get current time in Eastern Time (America/New_York)
   const today = new Date();
-  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const easternDate = new Date(today.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  return `${easternDate.getFullYear()}-${String(easternDate.getMonth() + 1).padStart(2, '0')}-${String(easternDate.getDate()).padStart(2, '0')}`;
 }
 
 export function getDateSeed(dateString: string): number {

@@ -58,9 +58,9 @@ export default function Timer({ isRunning, startTime, onTimeUpdate }: TimerProps
 
 export function formatTimeDisplay(seconds: number): string {
   const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
+  const secs = (seconds % 60).toFixed(1);
   if (mins > 0) {
-    return `${mins}m ${secs}s`;
+    return `${mins}:${secs.padStart(4, '0')}`;
   }
   return `${secs}s`;
 }
