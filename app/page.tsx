@@ -36,7 +36,7 @@ export default function Home() {
           <div className="flex justify-center items-center bg-blue-100 mx-auto mb-4 rounded-full w-16 h-16">
             <span className="text-3xl">🔒</span>
           </div>
-          <div className="mb-3">
+          <div className="flex justify-center mb-3">
             <svg width="60" height="80" viewBox="0 0 60 80" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect x="2" y="2" width="56" height="76" rx="6" fill="white" stroke="#3B82F6" strokeWidth="3"/>
               <ellipse cx="30" cy="25" rx="15" ry="8" fill="#EF4444" stroke="#EF4444" strokeWidth="2"/>
@@ -127,16 +127,18 @@ export default function Home() {
       </div>
       
       {/* Game Area */}
-      <div className="flex-1 px-4 py-4 overflow-auto">
-        <SetGame 
-          onShowSetsClick={() => setShowingSets(!showingSets)} 
-          showingSets={showingSets}
-          onFoundSetsChange={setFoundSets}
-          onTimerChange={(startTime, isRunning) => {
-            setTimerStartTime(startTime);
-            setIsTimerRunning(isRunning);
-          }}
-        />
+      <div className="flex flex-1 justify-center px-4 py-4 overflow-auto">
+        <div className="w-full max-w-5xl">
+          <SetGame 
+            onShowSetsClick={() => setShowingSets(!showingSets)} 
+            showingSets={showingSets}
+            onFoundSetsChange={setFoundSets}
+            onTimerChange={(startTime, isRunning) => {
+              setTimerStartTime(startTime);
+              setIsTimerRunning(isRunning);
+            }}
+          />
+        </div>
       </div>
     </main>
   );

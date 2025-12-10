@@ -71,16 +71,7 @@ export default function SetCard({ card, isSelected, isInSet = false, setLabels =
         return (
           <path
             key={shapeIndex}
-            d={`M 28 ${baseY} 
-                C 28 ${baseY - 4} 32 ${baseY - 6} 38 ${baseY - 5}
-                C 44 ${baseY - 4} 50 ${baseY - 2} 56 ${baseY - 4}
-                C 62 ${baseY - 6} 68 ${baseY - 3} 72 ${baseY + 2}
-                C 74 ${baseY + 5} 73 ${baseY + 9} 70 ${baseY + 11}
-                C 67 ${baseY + 13} 63 ${baseY + 13} 58 ${baseY + 12}
-                C 53 ${baseY + 11} 48 ${baseY + 10} 43 ${baseY + 12}
-                C 38 ${baseY + 14} 33 ${baseY + 15} 29 ${baseY + 13}
-                C 26 ${baseY + 11} 26 ${baseY + 7} 28 ${baseY + 4}
-                C 30 ${baseY + 2} 28 ${baseY} 28 ${baseY} Z`}
+            d={`M 30 ${baseY + 10} Q 35 ${baseY} 45 ${baseY + 5} Q 55 ${baseY + 10} 70 ${baseY + 5} Q 65 ${baseY + 20} 55 ${baseY + 15} Q 45 ${baseY + 10} 30 ${baseY + 15} Q 30 ${baseY + 10} 30 ${baseY + 10}`}
             fill={fillColor}
             stroke={color}
             strokeWidth={strokeWidth}
@@ -97,7 +88,7 @@ export default function SetCard({ card, isSelected, isInSet = false, setLabels =
         hover:shadow-xl hover:scale-105
         ${isSelected ? 'ring-4 ring-blue-500 scale-105' : ''}
         ${isInSet && !isSelected ? 'ring-4 ring-purple-400' : ''}
-        p-2 md:p-4 aspect-[3/4] flex items-center justify-center w-full relative
+        p-2 md:p-4 aspect-[2/3] flex items-center justify-center w-full relative
       `}
     >
       <svg className="w-full max-w-[100px] h-full max-h-[100px]" viewBox="0 0 100 100">

@@ -11,13 +11,26 @@ export async function isUserApproved(email: string): Promise<boolean> {
     const docRef = doc(db, 'users', email.toLowerCase());
     const docSnap = await getDoc(docRef);
     
+    console.log('Checking approval for:', email.toLowerCase());
+    console.log('Document path:', `users/${email.toLowerCase()}`);
+    console.log('Document exists:', docSnap.exists());
+    
     if (docSnap.exists()) {
-      return docSnap.data()?.approved === true;
+      const data = docSnap.data();
+      console.log('User data (full):', JSON.stringify(data, null, 2));
+      console.log('All keys:', Object.keys(data));
+      console.log('Approved field exists:', 'approved' in data);
+      console.log('Approved value:', data?.approved);
+      console.log('Approved type:', typeof data?.approved);
+      return data?.approved === true;
     }
+    
+    console.log('User document does not exist');
     return false;
-  } catch (error) {
-    const isDev = process.env.NODE_ENV === 'development';
-    if (isDev) console.error('Error checking user approval:', error);
+  } catch (error: any) {
+    console.error('Error checking user approval:', error);
+    console.error('Error code:', error?.code);
+    console.error('Error message:', error?.message);
     return false;
   }
 }
@@ -29,14 +42,24 @@ export async function isUserApproved(email: string): Promise<boolean> {
 export async function createUserRecord(email: string, uid: string): Promise<void> {
   try {
     const docRef = doc(db, 'users', email.toLowerCase());
-    const displayName = email.split('@')[0]; // Default to email prefix
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      // User already exists, don't update anything
+      console.log('User record already exists, skipping update');
+      return;
+    }
+    
+    // New user, create with all fields including approved: false
+    const displayName = email.split('@')[0];
     await setDoc(docRef, {
       email: email.toLowerCase(),
       uid,
       displayName,
       approved: false, // Require manual approval by admin
       createdAt: serverTimestamp(),
-    }, { merge: true });
+    });
+    console.log('New user record created');
   } catch (error) {
     const isDev = process.env.NODE_ENV === 'development';
     if (isDev) console.error('Error creating user record:', error);

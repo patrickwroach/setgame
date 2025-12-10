@@ -38,22 +38,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log('🟡 onAuthStateChanged triggered, user:', user?.email);
+      
       // If we're in the middle of creating a user, wait a bit
       if (isCreatingUser.current) {
-        // Wait for user creation to complete
+        console.log('🟡 Waiting for user creation to complete...');
         await new Promise(resolve => setTimeout(resolve, 500));
       }
 
       if (user?.email) {
+        console.log('🟡 User exists, checking approval...');
         // Check if user is approved
         const approved = await isUserApproved(user.email);
+        console.log('🟡 onAuthStateChanged approval result:', approved);
         
         if (approved) {
           // User is approved, set them as authenticated
+          console.log('🟢 onAuthStateChanged: User approved, setting state');
           setUser(user);
           setIsApproved(true);
         } else {
           // User not approved, sign them out
+          console.log('🔴 onAuthStateChanged: User NOT approved, signing out');
           await logAuditEvent('user_denied', user.uid, user.email, { reason: 'not_approved' }, 'warning');
           await signOut(auth);
           setUser(null);
@@ -61,11 +67,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } else {
         // No user signed in
+        console.log('🟡 No user in onAuthStateChanged');
         setUser(null);
         setIsApproved(false);
       }
       
       setLoading(false);
+      console.log('🟡 onAuthStateChanged complete, loading set to false');
     });
 
     return unsubscribe;
@@ -112,30 +120,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
+      console.log('🔵 Starting Google sign-in...');
       isCreatingUser.current = true;
       
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
+      console.log('🔵 Google popup completed, user:', result.user?.email);
       
       if (result.user?.email) {
-        // Always ensure user record exists (creates if not exists, merge: true prevents overwrite)
+        console.log('🔵 Creating/updating user record...');
         await createUserRecord(result.user.email, result.user.uid);
+        console.log('🔵 User record created/updated successfully');
+        
         await logAuditEvent('google_signin', result.user.uid, result.user.email, { method: 'google' }, 'info');
+        console.log('🔵 Audit event logged');
         
         // Now check if approved (should be true since we just created/updated it)
+        console.log('🔵 Checking if user is approved...');
         const approved = await isUserApproved(result.user.email);
+        console.log('🔵 Approval check result:', approved);
         
         if (!approved) {
-          // This shouldn't happen, but if it does, sign them out
+          console.log('🔴 User not approved, signing out...');
           await logAuditEvent('unauthorized_access_attempt', result.user.uid, result.user.email, { method: 'google' }, 'warning');
           await signOut(auth);
           isCreatingUser.current = false;
           throw new Error('Access denied. Please contact support for assistance.');
         }
+        
+        console.log('🟢 User approved! Sign-in successful');
       }
       
       isCreatingUser.current = false;
-    } catch (error) {
+    } catch (error: any) {
+      console.error('🔴 Google sign-in error:', error);
+      console.error('🔴 Error message:', error?.message);
+      console.error('🔴 Error code:', error?.code);
       isCreatingUser.current = false;
       throw error;
     }
