@@ -31,6 +31,17 @@ export async function recordDailyCompletion(
     return;
   }
 
+  // Validate completion time (1 second to 1 hour)
+  if (completionTime < 1 || completionTime > 3600) {
+    console.error('Invalid completion time:', completionTime);
+    await logAuditEvent('invalid_input', userId, undefined, { 
+      field: 'completionTime', 
+      value: completionTime,
+      reason: 'out_of_range'
+    }, 'warning');
+    throw new Error('Invalid completion time. Must be between 1 and 3600 seconds.');
+  }
+
   const dateString = getTodayDateString();
   const userCompletionsRef = doc(db, 'daily_completions', userId);
 

@@ -34,10 +34,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isApproved, setIsApproved] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user?.email) {
+        // Set verifying state to block operations during approval check
+        setIsVerifying(true);
+        setUser(null); // Don't set user until verified
+        setIsApproved(false);
+        
         // Check if user is approved
         try {
           const approved = await isUserApproved(user.email);
@@ -60,11 +66,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await signOut(auth);
           setUser(null);
           setIsApproved(false);
+        } finally {
+          setIsVerifying(false);
         }
       } else {
         // No user signed in
         setUser(null);
         setIsApproved(false);
+        setIsVerifying(false);
       }
       
       setLoading(false);

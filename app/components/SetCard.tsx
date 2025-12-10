@@ -68,15 +68,24 @@ export default function SetCard({ card, isSelected, isInSet = false, setLabels =
           />
         );
       case 'squiggle':
+        // Centered squiggle path - horizontal orientation
         return (
-          <g key={shapeIndex} transform={`translate(70, ${baseY - 15}) rotate(90) scale(0.45)`}>
-            <path
-              d="M38.4,63.4c0,16.1,11,19.9,10.6,28.3c-0.5,9.2-21.1,12.2-33.4,3.8s-15.8-21.2-9.3-38c3.7-7.5,4.9-14,4.8-20 c0-16.1-11-19.9-10.6-28.3C1,0.1,21.6-3,33.9,5.5s15.8,21.2,9.3,38C40.4,50.6,38.5,57.4,38.4,63.4z"
-              fill={fillColor}
-              stroke={color}
-              strokeWidth={strokeWidth * 2}
-            />
-          </g>
+          <path
+            key={shapeIndex}
+            d={`M 30 ${baseY + 10} 
+                c -7.2 0 -9 -4.95 -12.7 -4.77 
+                c -4.1 0.23 -5.5 9.5 -1.7 15 
+                c 4 5.8 9.5 7.1 17.1 4.2 
+                c 3.4 -1.7 6.3 -2.2 9 -2.2 
+                c 7.2 0 9 4.95 12.7 4.77 
+                c 4.1 -0.23 5.5 -9.5 1.7 -15 
+                c -4 -5.8 -9.5 -7.1 -17.1 -4.2 
+                c -3.4 1.7 -6.3 2.2 -9 2.2 z`}
+            fill={fillColor}
+            stroke={color}
+            strokeWidth={strokeWidth}
+            transform={`translate(10, 0)`}
+          />
         );
     }
   };

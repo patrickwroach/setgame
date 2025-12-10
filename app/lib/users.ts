@@ -84,6 +84,8 @@ export async function getUserData(email: string): Promise<any> {
 export async function updateDisplayName(email: string, displayName: string): Promise<void> {
   // Validate display name
   const trimmed = displayName.trim();
+  
+  // Check length after trimming
   if (trimmed.length < 1 || trimmed.length > 50) {
     await logAuditEvent('invalid_input', undefined, email, { 
       field: 'displayName', 
@@ -92,6 +94,8 @@ export async function updateDisplayName(email: string, displayName: string): Pro
     }, 'warning');
     throw new Error('Display name must be 1-50 characters');
   }
+  
+  // Check for valid characters
   if (!/^[a-zA-Z0-9_\s-]+$/.test(trimmed)) {
     await logAuditEvent('invalid_input', undefined, email, { 
       field: 'displayName', 
@@ -99,6 +103,16 @@ export async function updateDisplayName(email: string, displayName: string): Pro
       value: displayName.substring(0, 100) // Truncate for logging
     }, 'warning');
     throw new Error('Display name can only contain letters, numbers, spaces, hyphens, and underscores');
+  }
+  
+  // Prevent all-spaces names (must have at least one non-space character)
+  if (!/[a-zA-Z0-9_-]/.test(trimmed)) {
+    await logAuditEvent('invalid_input', undefined, email, { 
+      field: 'displayName', 
+      reason: 'only_spaces',
+      value: displayName.substring(0, 100)
+    }, 'warning');
+    throw new Error('Display name must contain at least one letter, number, underscore, or hyphen');
   }
   
   try {

@@ -20,7 +20,11 @@ service cloud.firestore {
              name.trim().size() >= 1; // No all-spaces names
     }
     
-    // Users collection - restrict read access to approved users only
+    function isValidCompletionTime(time) {
+      return time is number && time >= 1 && time <= 3600; // 1 sec to 1 hour
+    }
+    
+    // Users collection - restrict read access
     match /users/{email} {
       // Only read approved users OR your own record
       allow read: if isAuthenticated() && 
@@ -35,30 +39,36 @@ service cloud.firestore {
                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'uid']) &&
                        isValidDisplayName(request.resource.data.displayName);
       
-      allow delete: if false; // Only admin can delete via Firebase Console
+      allow delete: if false; // Admin only via console
     }
     
-    // Daily completions - validate data structure
+    // Daily completions - add validation
     match /daily_completions/{userId} {
       allow read: if isAuthenticated();
       
       allow write: if isAuthenticated() && 
                       request.auth.uid == userId &&
                       request.resource.data.userId == userId;
+      
+      // Validate completion data structure
+      allow update: if isAuthenticated() && 
+                       request.auth.uid == userId &&
+                       request.resource.data.keys().hasOnly(['userId', 'completions']);
     }
     
-    // Access requests - allow unauthenticated writes (for new user requests)
+    // Access requests - allow unauthenticated writes
     match /access_requests/{email} {
       allow create: if request.resource.data.keys().hasOnly(['email', 'requestedAt', 'status']) &&
                        request.resource.data.email == email.lower() &&
                        request.resource.data.status == 'pending';
       
-      allow read, update, delete: if false; // Admin only via Firebase Console
+      allow read, update, delete: if false; // Admin only via console
     }
     
-    // Audit logs - admin only (use Cloud Functions with Admin SDK for writes)
+    // Audit logs - REMOVE client write access
+    // Use Cloud Functions with Admin SDK instead
     match /audit_logs/{logId} {
-      allow read, write: if false; // Admin only via Firebase Console
+      allow read, write: if false; // Admin only via console or Cloud Functions
     }
     
     // Deny all other access by default

@@ -29,6 +29,9 @@ export interface AuditLogEntry {
 
 /**
  * Log a security-relevant event
+ * NOTE: Client-side audit logging is disabled for security.
+ * Logs are only written to console in development.
+ * For production audit logs, implement Cloud Functions with Admin SDK.
  */
 export async function logAuditEvent(
   eventType: AuditEventType,
@@ -38,21 +41,7 @@ export async function logAuditEvent(
   severity: 'info' | 'warning' | 'error' = 'info'
 ): Promise<void> {
   try {
-    const auditEntry: AuditLogEntry = {
-      eventType,
-      userId,
-      userEmail,
-      details,
-      timestamp: serverTimestamp(),
-      severity,
-    };
-
-    // Only log in production or if explicitly enabled
-    if (process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_AUDIT_LOG === 'true') {
-      await addDoc(collection(db, 'audit_logs'), auditEntry);
-    }
-
-    // Always log to console in development
+    // Always log to console in development for debugging
     if (process.env.NODE_ENV === 'development') {
       console.log(`[AUDIT ${severity.toUpperCase()}]`, eventType, {
         userId,
@@ -60,6 +49,16 @@ export async function logAuditEvent(
         details,
       });
     }
+
+    // Client-side writes to audit_logs are blocked by Firestore rules
+    // To enable production audit logging:
+    // 1. Create a Cloud Function with Admin SDK
+    // 2. Call the function via HTTPS callable or use Firebase Auth triggers
+    // 3. This prevents users from writing fake audit logs
+    
+    // TODO: Implement server-side audit logging via Cloud Functions
+    // Example: await httpsCallable(functions, 'logAuditEvent')({ eventType, userId, userEmail, details, severity });
+    
   } catch (error) {
     // Don't throw - audit logging should never break the app
     if (process.env.NODE_ENV === 'development') {
