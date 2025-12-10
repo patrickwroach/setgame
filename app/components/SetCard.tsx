@@ -84,7 +84,7 @@ export default function SetCard({ card, isSelected, isInSet = false, setLabels =
             fill={fillColor}
             stroke={color}
             strokeWidth={strokeWidth}
-            transform={`translate(10, 0)`}
+            transform={`translate(20, 0)`}
           />
         );
     }
