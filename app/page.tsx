@@ -127,8 +127,8 @@ export default function Home() {
       </div>
       
       {/* Game Area */}
-      <div className="flex flex-1 justify-center px-4 py-4 overflow-auto">
-        <div className="w-full max-w-5xl">
+      <div className="flex flex-1 justify-center px-4 py-4 overflow-hidden">
+        <div className="w-full max-w-5xl h-full">
           <SetGame 
             onShowSetsClick={() => setShowingSets(!showingSets)} 
             showingSets={showingSets}

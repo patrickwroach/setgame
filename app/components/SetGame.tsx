@@ -208,7 +208,7 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
     <div className="flex flex-col h-full">
       {/* Only show message for completion or important states */}
       {(message.includes('✅') || message.includes('🎉') || message.includes('⚠️') || message.includes('💡')) && (
-        <div className={`text-center text-lg font-bold mb-3 p-3 rounded-lg ${
+        <div className={`text-center text-lg font-bold mb-3 p-3 rounded-lg flex-shrink-0 ${
           message.includes('✅') ? 'bg-green-100 text-green-800' :
           message.includes('🎉') ? 'bg-yellow-100 text-yellow-800' :
           message.includes('⚠️') ? 'bg-orange-100 text-orange-800' :
@@ -220,7 +220,7 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
       )}
 
       {showingSets && (
-        <div className="bg-purple-50 mb-3 p-3 border border-purple-200 rounded-lg">
+        <div className="flex-shrink-0 bg-purple-50 mb-3 p-3 border border-purple-200 rounded-lg">
           <div className="mb-2 font-semibold text-purple-800 text-sm">All Sets on Board:</div>
           <div className="space-y-1">
             {allSets.map((set, idx) => {
@@ -238,17 +238,19 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
         </div>
       )}
 
-      <div className="gap-2 sm:gap-3 grid grid-cols-3 md:grid-cols-4 mx-auto max-w-[900px]">
-        {board.map((card, index) => (
-          <SetCard
-            key={index}
-            card={card}
-            isSelected={selectedCards.includes(index)}
-            isInSet={isCardInAnySet(index)}
-            setLabels={getCardSetLabels(index)}
-            onClick={() => handleCardClick(index)}
-          />
-        ))}
+      <div className="flex flex-1 justify-center items-center min-h-0">
+        <div className="gap-2 sm:gap-3 grid grid-cols-3 md:grid-cols-4 mx-auto w-full max-w-[900px] h-full max-h-full">
+          {board.map((card, index) => (
+            <SetCard
+              key={index}
+              card={card}
+              isSelected={selectedCards.includes(index)}
+              isInSet={isCardInAnySet(index)}
+              setLabels={getCardSetLabels(index)}
+              onClick={() => handleCardClick(index)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
