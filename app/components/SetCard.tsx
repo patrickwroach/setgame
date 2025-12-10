@@ -71,7 +71,14 @@ export default function SetCard({ card, isSelected, isInSet = false, setLabels =
         return (
           <path
             key={shapeIndex}
-            d={`M 30 ${baseY + 10} Q 35 ${baseY} 45 ${baseY + 5} Q 55 ${baseY + 10} 70 ${baseY + 5} Q 65 ${baseY + 20} 55 ${baseY + 15} Q 45 ${baseY + 10} 30 ${baseY + 15} Q 30 ${baseY + 10} 30 ${baseY + 10}`}
+            d={`M 28 ${baseY + 5}
+                C 28 ${baseY} 35 ${baseY - 2} 42 ${baseY + 1}
+                C 49 ${baseY + 4} 54 ${baseY + 1} 58 ${baseY + 3}
+                C 62 ${baseY + 5} 65 ${baseY + 8} 68 ${baseY + 11}
+                C 71 ${baseY + 14} 72 ${baseY + 18} 68 ${baseY + 19}
+                C 64 ${baseY + 20} 58 ${baseY + 18} 52 ${baseY + 17}
+                C 46 ${baseY + 16} 40 ${baseY + 18} 35 ${baseY + 16}
+                C 30 ${baseY + 14} 28 ${baseY + 10} 28 ${baseY + 5} Z`}
             fill={fillColor}
             stroke={color}
             strokeWidth={strokeWidth}

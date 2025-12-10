@@ -238,7 +238,7 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
         </div>
       )}
 
-      <div className="gap-2 sm:gap-3 grid grid-cols-3 md:grid-cols-4">
+      <div className="gap-2 sm:gap-3 grid grid-cols-3 md:grid-cols-4 mx-auto max-w-[900px]">
         {board.map((card, index) => (
           <SetCard
             key={index}

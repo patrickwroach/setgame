@@ -11,26 +11,15 @@ export async function isUserApproved(email: string): Promise<boolean> {
     const docRef = doc(db, 'users', email.toLowerCase());
     const docSnap = await getDoc(docRef);
     
-    console.log('Checking approval for:', email.toLowerCase());
-    console.log('Document path:', `users/${email.toLowerCase()}`);
-    console.log('Document exists:', docSnap.exists());
-    
     if (docSnap.exists()) {
       const data = docSnap.data();
-      console.log('User data (full):', JSON.stringify(data, null, 2));
-      console.log('All keys:', Object.keys(data));
-      console.log('Approved field exists:', 'approved' in data);
-      console.log('Approved value:', data?.approved);
-      console.log('Approved type:', typeof data?.approved);
       return data?.approved === true;
     }
     
-    console.log('User document does not exist');
     return false;
   } catch (error: any) {
-    console.error('Error checking user approval:', error);
-    console.error('Error code:', error?.code);
-    console.error('Error message:', error?.message);
+    const isDev = process.env.NODE_ENV === 'development';
+    if (isDev) console.error('Error checking user approval:', error);
     return false;
   }
 }
@@ -46,7 +35,6 @@ export async function createUserRecord(email: string, uid: string): Promise<void
     
     if (docSnap.exists()) {
       // User already exists, don't update anything
-      console.log('User record already exists, skipping update');
       return;
     }
     
@@ -59,7 +47,6 @@ export async function createUserRecord(email: string, uid: string): Promise<void
       approved: false, // Require manual approval by admin
       createdAt: serverTimestamp(),
     });
-    console.log('New user record created');
   } catch (error) {
     const isDev = process.env.NODE_ENV === 'development';
     if (isDev) console.error('Error creating user record:', error);
