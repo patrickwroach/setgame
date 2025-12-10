@@ -34,26 +34,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isApproved, setIsApproved] = useState(false);
-  const isCreatingUser = useRef(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      // If we're in the middle of creating a user, wait a bit
-      if (isCreatingUser.current) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-
       if (user?.email) {
         // Check if user is approved
-        const approved = await isUserApproved(user.email);
-        
-        if (approved) {
-          // User is approved, set them as authenticated
-          setUser(user);
-          setIsApproved(true);
-        } else {
-          // User not approved, sign them out
-          await logAuditEvent('user_denied', user.uid, user.email, { reason: 'not_approved' }, 'warning');
+        try {
+          const approved = await isUserApproved(user.email);
+          
+          if (approved) {
+            // User is approved, set them as authenticated
+            setUser(user);
+            setIsApproved(true);
+          } else {
+            // User not approved, sign them out
+            await logAuditEvent('user_denied', user.uid, user.email, { reason: 'not_approved' }, 'warning');
+            await signOut(auth);
+            setUser(null);
+            setIsApproved(false);
+          }
+        } catch (error) {
+          // On error checking approval, sign out for safety
+          console.error('Error checking user approval, signing out:', error);
+          await logAuditEvent('system_error', user.uid, user.email, { error: String(error) }, 'error');
           await signOut(auth);
           setUser(null);
           setIsApproved(false);
@@ -71,36 +74,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    // Try to sign in
-    const result = await signInWithEmailAndPassword(auth, email, password);
-    
-    // Check if user is approved
-    const approved = await isUserApproved(email);
-    if (!approved) {
-      // Sign them out
-      await logAuditEvent('unauthorized_access_attempt', result.user.uid, email, { method: 'email_password' }, 'warning');
-      await signOut(auth);
-      throw new Error('Access denied. Please contact support for assistance.');
-    }
-    
-    await logAuditEvent('user_signin', result.user.uid, email, { method: 'email_password' }, 'info');
+    // Sign in - onAuthStateChanged will handle approval check
+    await signInWithEmailAndPassword(auth, email, password);
+    // Note: onAuthStateChanged listener will verify approval and log events
   };
 
   const signUp = async (email: string, password: string) => {
     try {
-      isCreatingUser.current = true;
-      
       // Create the Firebase Auth account
       const result = await createUserWithEmailAndPassword(auth, email, password);
       
-      // Create user record in Firestore (auto-approved)
+      // Create user record in Firestore
       await createUserRecord(email, result.user.uid);
       await logAuditEvent('user_signup', result.user.uid, email, { method: 'email_password' }, 'info');
-      
-      isCreatingUser.current = false;
-      // User is now signed in and approved
+      // Note: onAuthStateChanged listener will verify approval
     } catch (error: any) {
-      isCreatingUser.current = false;
       // Don't reveal if email exists (prevents enumeration)
       if (error.code === 'auth/email-already-in-use') {
         throw new Error('Unable to create account. Please try signing in or contact support.');
@@ -110,31 +98,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
-    try {
-      isCreatingUser.current = true;
-      
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      
-      if (result.user?.email) {
-        await createUserRecord(result.user.email, result.user.uid);
-        await logAuditEvent('google_signin', result.user.uid, result.user.email, { method: 'google' }, 'info');
-        
-        // Now check if approved
-        const approved = await isUserApproved(result.user.email);
-        
-        if (!approved) {
-          await logAuditEvent('unauthorized_access_attempt', result.user.uid, result.user.email, { method: 'google' }, 'warning');
-          await signOut(auth);
-          isCreatingUser.current = false;
-          throw new Error('Access denied. Please contact support for assistance.');
-        }
-      }
-      
-      isCreatingUser.current = false;
-    } catch (error) {
-      isCreatingUser.current = false;
-      throw error;
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    
+    if (result.user?.email) {
+      // Ensure user record exists
+      await createUserRecord(result.user.email, result.user.uid);
+      // Note: onAuthStateChanged listener will verify approval and log events
     }
   };
 

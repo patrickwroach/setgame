@@ -16,11 +16,12 @@ export async function isUserApproved(email: string): Promise<boolean> {
       return data?.approved === true;
     }
     
+    // User document doesn't exist = not approved
     return false;
   } catch (error: any) {
-    const isDev = process.env.NODE_ENV === 'development';
-    if (isDev) console.error('Error checking user approval:', error);
-    return false;
+    // Log error and re-throw - don't silently fail
+    console.error('CRITICAL: Error checking user approval:', error);
+    throw new Error('Unable to verify user approval status. Please try again.');
   }
 }
 
@@ -39,7 +40,11 @@ export async function createUserRecord(email: string, uid: string): Promise<void
     }
     
     // New user, create with all fields including approved: false
-    const displayName = email.split('@')[0];
+    // Sanitize display name from email - only allow alphanumeric, dots, hyphens, underscores
+    const emailPrefix = email.split('@')[0];
+    const sanitized = emailPrefix.replace(/[^a-zA-Z0-9._-]/g, '');
+    const displayName = sanitized.substring(0, 50) || 'User'; // Fallback if empty after sanitization
+    
     await setDoc(docRef, {
       email: email.toLowerCase(),
       uid,

@@ -13,7 +13,8 @@ export type AuditEventType =
   | 'puzzle_incomplete'
   | 'unauthorized_access_attempt'
   | 'firestore_permission_denied'
-  | 'invalid_input';
+  | 'invalid_input'
+  | 'system_error';
 
 export interface AuditLogEntry {
   eventType: AuditEventType;
