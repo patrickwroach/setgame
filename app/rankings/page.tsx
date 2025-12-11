@@ -196,7 +196,8 @@ export default function RankingsPage() {
           <div className="flex justify-center items-center gap-2 mt-4">
             <button
               onClick={() => setDayOffset(dayOffset - 1)}
-              className="bg-gray-200 hover:bg-gray-300 p-2 rounded-lg transition-colors"
+              disabled={true}
+              className="bg-gray-100 p-2 rounded-lg text-gray-400 transition-colors cursor-not-allowed"
               title="Previous Day"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
@@ -291,7 +292,8 @@ export default function RankingsPage() {
           <div className="flex justify-center items-center gap-2 mt-4">
             <button
               onClick={() => setWeekOffset(weekOffset - 1)}
-              className="bg-gray-200 hover:bg-gray-300 p-2 rounded-lg transition-colors"
+              disabled={true}
+              className="bg-gray-100 p-2 rounded-lg text-gray-400 transition-colors cursor-not-allowed"
               title="Previous Week"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
