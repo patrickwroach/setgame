@@ -1,7 +1,7 @@
 import { db } from './firebase';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import { getAllCompletions } from './dailyCompletions';
-import { getUserData } from './users';
+import { getUserData, getUserDataByUid } from './users';
 
 export interface UserStats {
   userId: string;
@@ -11,6 +11,7 @@ export interface UserStats {
   didNotCompletes: number;
   bestTime: number | null;
   averageTime: number | null;
+  daysWithBestTime: number;
   completionsByMonth: { [month: string]: number };
   recentCompletions: Array<{
     date: string;
@@ -61,6 +62,9 @@ export async function getUserStats(userId: string, userEmail: string): Promise<U
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 30);
 
+  // Count days with best time
+  const daysWithBestTime = await countDaysWithBestTime(userId);
+
   return {
     userId,
     email: userEmail,
@@ -69,6 +73,7 @@ export async function getUserStats(userId: string, userEmail: string): Promise<U
     didNotCompletes,
     bestTime,
     averageTime,
+    daysWithBestTime,
     completionsByMonth,
     recentCompletions,
   };
@@ -89,10 +94,22 @@ export async function getDailyLeaderboard(date: string): Promise<LeaderboardEntr
       const completion = data.completions?.[date];
       
       if (completion && completion.completed) {
-        const userData = await getUserData(data.userId);
+        // doc.id is the userId (Firebase UID)
+        const userData = await getUserDataByUid(doc.id);
+        const displayName = userData?.displayName || doc.id.substring(0, 8) + '...';
+        
+        const isDev = process.env.NODE_ENV === 'development';
+        if (isDev) {
+          console.log(`Leaderboard entry for ${doc.id}:`, {
+            userData,
+            displayName,
+            hasUserData: !!userData
+          });
+        }
+        
         leaderboard.push({
           userId: doc.id,
-          displayName: userData?.displayName || data.userId.split('@')[0],
+          displayName,
           time: completion.completionTime,
           date,
         });
@@ -134,10 +151,10 @@ export async function getAllTimeBestLeaderboard(limitCount: number = 50): Promis
       });
       
       if (bestTime !== null && bestDate !== null) {
-        const userData = await getUserData(data.userId);
+        const userData = await getUserDataByUid(doc.id);
         allBestTimes.push({
           userId: doc.id,
-          displayName: userData?.displayName || data.userId.split('@')[0],
+          displayName: userData?.displayName || doc.id.substring(0, 8) + '...',
           time: bestTime,
           date: bestDate,
         });
@@ -183,10 +200,10 @@ export async function getAverageTimeLeaderboard(limitCount: number = 50): Promis
         const times = validCompletions.map((c: any) => c.completionTime);
         const averageTime = times.reduce((sum: number, t: number) => sum + t, 0) / times.length;
         
-        const userData = await getUserData(data.userId);
+        const userData = await getUserDataByUid(doc.id);
         averages.push({
           userId: doc.id,
-          displayName: userData?.displayName || data.userId.split('@')[0],
+          displayName: userData?.displayName || doc.id.substring(0, 8) + '...',
           averageTime,
           totalCompletions: validCompletions.length,
         });
@@ -199,6 +216,57 @@ export async function getAverageTimeLeaderboard(limitCount: number = 50): Promis
     const isDev = process.env.NODE_ENV === 'development';
     if (isDev) console.error('Error getting average time leaderboard:', error);
     return [];
+  }
+}
+
+/**
+ * Count the number of days where a user had the best time among all users
+ * Only counts days where the user completed the puzzle (did not completes are disqualified)
+ */
+export async function countDaysWithBestTime(userId: string): Promise<number> {
+  try {
+    const userCompletions = await getAllCompletions(userId);
+    const completionsRef = collection(db, 'daily_completions');
+    const snapshot = await getDocs(completionsRef);
+    
+    let daysWithBest = 0;
+    
+    // Get all dates where user completed
+    const userCompletedDates = Object.entries(userCompletions)
+      .filter(([_, data]) => data.completed)
+      .map(([date, _]) => date);
+    
+    // For each date the user completed, check if they had the best time
+    for (const date of userCompletedDates) {
+      const userTime = userCompletions[date].completionTime;
+      let isBest = true;
+      
+      // Check all other users for this date
+      for (const doc of snapshot.docs) {
+        if (doc.id === userId) continue; // Skip self
+        
+        const data = doc.data();
+        const otherCompletion = data.completions?.[date];
+        
+        // Only consider completed puzzles (did not completes are disqualified)
+        if (otherCompletion && otherCompletion.completed) {
+          if (otherCompletion.completionTime < userTime) {
+            isBest = false;
+            break;
+          }
+        }
+      }
+      
+      if (isBest) {
+        daysWithBest++;
+      }
+    }
+    
+    return daysWithBest;
+  } catch (error) {
+    const isDev = process.env.NODE_ENV === 'development';
+    if (isDev) console.error('Error counting days with best time:', error);
+    return 0;
   }
 }
 

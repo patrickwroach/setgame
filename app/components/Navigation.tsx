@@ -7,7 +7,7 @@ import Timer from './Timer';
 
 export default function Navigation() {
   const { user } = useAuth();
-  const { foundSets, timerStartTime, isTimerRunning, showingSets, setShowingSets } = useGame();
+  const { foundSets, timerStartTime, isTimerRunning, showingSets, setShowingSets, todayCompleted } = useGame();
   const router = useRouter();
   const pathname = usePathname();
   
@@ -35,7 +35,7 @@ export default function Navigation() {
           {pageTitle && (
             <h1 className="font-bold text-gray-700 text-xl">{pageTitle}</h1>
           )}
-          {isHomePage && (
+          {isHomePage && !todayCompleted && (
             <div className="flex items-center gap-3 text-sm">
               <div className="font-semibold text-gray-700">
                 {foundSets} / 4

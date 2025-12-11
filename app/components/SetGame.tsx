@@ -12,9 +12,10 @@ interface SetGameProps {
   showingSets: boolean;
   onFoundSetsChange: (count: number) => void;
   onTimerChange: (startTime: number, isRunning: boolean) => void;
+  onCompletionChange: (completed: boolean) => void;
 }
 
-export default function SetGame({ onShowSetsClick, showingSets: externalShowingSets, onFoundSetsChange, onTimerChange }: SetGameProps) {
+export default function SetGame({ onShowSetsClick, showingSets: externalShowingSets, onFoundSetsChange, onTimerChange, onCompletionChange }: SetGameProps) {
   const { user } = useAuth();
   const [board, setBoard] = useState<Card[]>([]);
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
@@ -62,17 +63,20 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
         setTodayCompleted(true);
         setIsTimerRunning(false);
         onTimerChange(timerStartTime, false);
+        onCompletionChange(true);
         setCompletionTime(completion.completionTime);
         setGameStarted(true);
-        setMessage(`✅ You already completed today's puzzle in ${formatTime(completion.completionTime)}!`);
+        setMessage(`🎉 You already completed today's puzzle in ${formatTime(completion.completionTime)}!`);
       } else if (completion?.showedAllSets) {
         setTodayCompleted(true);
         setIsTimerRunning(false);
         onTimerChange(timerStartTime, false);
+        onCompletionChange(true);
         setGameStarted(true);
         setMessage(`⚠️ You showed all sets today - marked as incomplete`);
       } else {
         setTodayCompleted(false);
+        onCompletionChange(false);
         setMessage('');
       }
     } else {
@@ -103,6 +107,7 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
           const timeElapsed = (Date.now() - timerStartTime) / 1000;
           await recordDailyCompletion(user.uid, timeElapsed, true);
           setTodayCompleted(true);
+          onCompletionChange(true);
           setMessage('💡 Showing all sets - marked as incomplete');
         } else {
           setMessage('💡 Showing all sets');
@@ -168,6 +173,7 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
             if (user && !hasShownSets && !todayCompleted) {
               await recordDailyCompletion(user.uid, timeElapsed, false);
               setTodayCompleted(true);
+              onCompletionChange(true);
             }
             
             setMessage(`🎉 You found all 4 sets in ${formatTime(timeElapsed)}!`);
@@ -237,7 +243,7 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
         {(message.includes('✅') || message.includes('🎉') || message.includes('⚠️') || message.includes('💡')) && (
         <div className={`text-center text-lg font-bold mb-3 p-3 rounded-lg flex-shrink-0 ${
           message.includes('✅') ? 'bg-green-100 text-green-800' :
-          message.includes('🎉') ? 'bg-yellow-100 text-yellow-800' :
+          message.includes('🎉') ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white' :
           message.includes('⚠️') ? 'bg-orange-100 text-orange-800' :
           message.includes('💡') ? 'bg-purple-100 text-purple-800' :
           'bg-blue-100 text-blue-800'
@@ -266,16 +272,17 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
       )}
 
       <div className="flex flex-1 justify-center items-center p-2 min-h-0">
-        <div className="gap-3 sm:gap-4 grid grid-cols-3 md:grid-cols-4 grid-rows-4 md:grid-rows-3 w-full max-w-[900px] h-full">
+        <div className="gap-2 sm:gap-3 grid grid-cols-3 md:grid-cols-4 grid-rows-4 md:grid-rows-3 w-full max-w-[1200px] h-full max-h-[calc(100vh-80px)] md:aspect-[960/494]">
           {board.map((card, index) => (
-            <SetCard
-              key={index}
-              card={card}
-              isSelected={selectedCards.includes(index)}
-              isInSet={isCardInAnySet(index)}
-              setLabels={getCardSetLabels(index)}
-              onClick={() => handleCardClick(index)}
-            />
+            <div key={index} className="w-full aspect-[2/3] md:aspect-[3/2]">
+              <SetCard
+                card={card}
+                isSelected={selectedCards.includes(index)}
+                isInSet={isCardInAnySet(index)}
+                setLabels={getCardSetLabels(index)}
+                onClick={() => handleCardClick(index)}
+              />
+            </div>
           ))}
         </div>
       </div>

@@ -36,19 +36,19 @@ export default function SetCard({ card, isSelected, isInSet = false, setLabels =
       fillColor = 'none';
     }
 
-    // Calculate vertical centering based on number of shapes
-    const shapeHeight = 20;
-    const spacing = 8;
-    const totalHeight = card.number * shapeHeight + (card.number - 1) * spacing;
-    const startY = (100 - totalHeight) / 2;
-    const baseY = startY + shapeIndex * (shapeHeight + spacing) + shapeHeight / 2;
+    // Calculate horizontal centering based on number of shapes (121.5% scale = 135% * 0.9)
+    const shapeWidth = 24.3; // 27 * 0.9
+    const spacing = 9.72; // 10.8 * 0.9
+    const totalWidth = card.number * shapeWidth + (card.number - 1) * spacing;
+    const startX = (100 - totalWidth) / 2;
+    const baseX = startX + shapeIndex * (shapeWidth + spacing) + shapeWidth / 2;
 
     switch (card.shape) {
       case 'diamond':
         return (
           <polygon
             key={shapeIndex}
-            points={`50,${baseY} 70,${baseY + 10} 50,${baseY + 20} 30,${baseY + 10}`}
+            points={`${baseX},25.7 ${baseX + 12.15},50 ${baseX},74.3 ${baseX - 12.15},50`}
             fill={fillColor}
             stroke={color}
             strokeWidth={strokeWidth}
@@ -58,33 +58,32 @@ export default function SetCard({ card, isSelected, isInSet = false, setLabels =
         return (
           <ellipse
             key={shapeIndex}
-            cx="50"
-            cy={baseY + 10}
-            rx="20"
-            ry="10"
+            cx={baseX}
+            cy="50"
+            rx="12.15"
+            ry="24.3"
             fill={fillColor}
             stroke={color}
             strokeWidth={strokeWidth}
           />
         );
       case 'squiggle':
-        // Centered squiggle path - horizontal orientation
+        // Centered squiggle path - horizontal orientation (121.5% scale, adjusted center)
         return (
           <path
             key={shapeIndex}
-            d={`M 30 ${baseY + 10} 
-                c -7.2 0 -9 -4.95 -12.7 -4.77 
-                c -4.1 0.23 -5.5 9.5 -1.7 15 
-                c 4 5.8 9.5 7.1 17.1 4.2 
-                c 3.4 -1.7 6.3 -2.2 9 -2.2 
-                c 7.2 0 9 4.95 12.7 4.77 
-                c 4.1 -0.23 5.5 -9.5 1.7 -15 
-                c -4 -5.8 -9.5 -7.1 -17.1 -4.2 
-                c -3.4 1.7 -6.3 2.2 -9 2.2 z`}
+            d={`M ${baseX + 6} 40 
+                c 0 -8.748 6.01425 -10.935 5.79555 -15.4305 
+                c -0.27945 -4.9815 -11.5425 -6.6825 -18.225 -2.0655 
+                c -7.047 4.86 -8.6265 11.5425 -5.103 20.7765 
+                c 2.0655 4.131 2.673 7.6545 2.673 10.935 
+                c 0 8.748 -6.01425 10.935 -5.79555 15.4305 
+                c 0.27945 4.9815 11.5425 6.6825 18.225 2.0655 
+                c 7.047 -4.86 8.6265 -11.5425 5.103 -20.7765 
+                c -2.0655 -4.131 -2.673 -7.6545 -2.673 -10.935 z`}
             fill={fillColor}
             stroke={color}
             strokeWidth={strokeWidth}
-            transform={`translate(20, 0)`}
           />
         );
     }

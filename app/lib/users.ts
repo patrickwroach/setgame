@@ -1,14 +1,14 @@
 import { db } from './firebase';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { logAuditEvent } from './auditLog';
 
 /**
  * Check if a user exists and is approved in Firestore
- * Users are stored in: users/{email} document with field `approved: true`
+ * Users are stored in: users/{uid} document with field `approved: true`
  */
-export async function isUserApproved(email: string): Promise<boolean> {
+export async function isUserApproved(uid: string): Promise<boolean> {
   try {
-    const docRef = doc(db, 'users', email.toLowerCase());
+    const docRef = doc(db, 'users', uid);
     const docSnap = await getDoc(docRef);
     
     if (docSnap.exists()) {
@@ -28,10 +28,11 @@ export async function isUserApproved(email: string): Promise<boolean> {
 /**
  * Create a user record in Firestore
  * This should be called after successful Firebase Auth account creation
+ * Users are now keyed by UID instead of email
  */
 export async function createUserRecord(email: string, uid: string): Promise<void> {
   try {
-    const docRef = doc(db, 'users', email.toLowerCase());
+    const docRef = doc(db, 'users', uid);
     const docSnap = await getDoc(docRef);
     
     if (docSnap.exists()) {
@@ -59,15 +60,17 @@ export async function createUserRecord(email: string, uid: string): Promise<void
 }
 
 /**
- * Get user data from Firestore
+ * Get user data from Firestore by email (legacy - searches for uid field)
  */
 export async function getUserData(email: string): Promise<any> {
   try {
-    const docRef = doc(db, 'users', email.toLowerCase());
-    const docSnap = await getDoc(docRef);
+    // Query to find user by email since we now key by UID
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('email', '==', email.toLowerCase()));
+    const snapshot = await getDocs(q);
     
-    if (docSnap.exists()) {
-      return docSnap.data();
+    if (!snapshot.empty) {
+      return snapshot.docs[0].data();
     }
     return null;
   } catch (error) {
@@ -78,15 +81,52 @@ export async function getUserData(email: string): Promise<any> {
 }
 
 /**
- * Update user display name
+ * Get user data from Firestore by userId (Firebase UID)
+ * Now uses direct document lookup since users are keyed by UID
  */
-export async function updateDisplayName(email: string, displayName: string): Promise<void> {
+export async function getUserDataByUid(uid: string): Promise<any> {
+  const isDev = process.env.NODE_ENV === 'development';
+  
+  try {
+    if (isDev) console.log(`getUserDataByUid called for UID: ${uid}`);
+    
+    const docRef = doc(db, 'users', uid);
+    const docSnap = await getDoc(docRef);
+    
+    if (isDev) {
+      console.log(`Document exists: ${docSnap.exists()}`);
+      if (docSnap.exists()) {
+        console.log('User data:', docSnap.data());
+      } else {
+        console.log('No user found with UID:', uid);
+      }
+    }
+    
+    if (docSnap.exists()) {
+      return docSnap.data();
+    }
+    return null;
+  } catch (error: any) {
+    if (isDev) {
+      console.error('Error getting user data by UID:', error);
+      console.error('Error code:', error?.code);
+      console.error('Error message:', error?.message);
+    }
+    return null;
+  }
+}
+
+/**
+ * Update user display name
+ * Now uses UID to look up the user document
+ */
+export async function updateDisplayName(uid: string, displayName: string): Promise<void> {
   // Validate display name
   const trimmed = displayName.trim();
   
   // Check length after trimming
   if (trimmed.length < 1 || trimmed.length > 50) {
-    await logAuditEvent('invalid_input', undefined, email, { 
+    await logAuditEvent('invalid_input', uid, undefined, { 
       field: 'displayName', 
       reason: 'invalid_length',
       value: displayName.substring(0, 100) // Truncate for logging
@@ -96,7 +136,7 @@ export async function updateDisplayName(email: string, displayName: string): Pro
   
   // Check for valid characters
   if (!/^[a-zA-Z0-9_\s-]+$/.test(trimmed)) {
-    await logAuditEvent('invalid_input', undefined, email, { 
+    await logAuditEvent('invalid_input', uid, undefined, { 
       field: 'displayName', 
       reason: 'invalid_characters',
       value: displayName.substring(0, 100) // Truncate for logging
@@ -106,7 +146,7 @@ export async function updateDisplayName(email: string, displayName: string): Pro
   
   // Prevent all-spaces names (must have at least one non-space character)
   if (!/[a-zA-Z0-9_-]/.test(trimmed)) {
-    await logAuditEvent('invalid_input', undefined, email, { 
+    await logAuditEvent('invalid_input', uid, undefined, { 
       field: 'displayName', 
       reason: 'only_spaces',
       value: displayName.substring(0, 100)
@@ -115,12 +155,12 @@ export async function updateDisplayName(email: string, displayName: string): Pro
   }
   
   try {
-    const docRef = doc(db, 'users', email.toLowerCase());
+    const docRef = doc(db, 'users', uid);
     await setDoc(docRef, {
       displayName: trimmed,
     }, { merge: true });
     
-    await logAuditEvent('displayname_changed', undefined, email, { 
+    await logAuditEvent('displayname_changed', uid, undefined, { 
       newDisplayName: trimmed 
     }, 'info');
   } catch (error) {

@@ -6,8 +6,8 @@ import { getUserStats, formatTime } from '../lib/stats';
 import { updateDisplayName } from '../lib/users';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import Link from 'next/link';
 import { getTodayInviteCode } from '../lib/inviteCode';
+import { getTodayDateString } from '../lib/dailyPuzzle';
 
 async function isUserAdmin(email: string): Promise<boolean> {
   try {
@@ -33,6 +33,7 @@ export default function ProfilePage() {
   const [inviteCode, setInviteCode] = useState('');
   const [showCode, setShowCode] = useState(false);
   const [codeExpiry, setCodeExpiry] = useState<string>('');
+  const [weekOffset, setWeekOffset] = useState(0);
 
   useEffect(() => {
     if (loading) return;
@@ -54,7 +55,7 @@ export default function ProfilePage() {
   }
 
   async function saveName() {
-    if (!user?.email || !newName.trim()) return;
+    if (!user?.uid || !newName.trim()) return;
     
     const trimmed = newName.trim();
     
@@ -69,7 +70,7 @@ export default function ProfilePage() {
     }
     
     try {
-      await updateDisplayName(user.email, trimmed);
+      await updateDisplayName(user.uid, trimmed);
       setEditingName(false);
       loadStats();
     } catch (error: any) {
@@ -80,16 +81,59 @@ export default function ProfilePage() {
   if (loading || loadingStats) return <div className="p-8">Loading...</div>;
   if (!user || !stats) return null;
 
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const monthData = Object.entries(stats.completionsByMonth).map(([month, count]) => {
-    const [year, m] = month.split('-');
-    return { label: `${monthNames[parseInt(m) - 1]} ${year}`, count: count as number };
-  });
+  // Helper function to get week start (Sunday) and end (Saturday)
+  const getWeekBounds = (offset: number) => {
+    const today = new Date();
+    const currentDay = today.getDay(); // 0 = Sunday, 6 = Saturday
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - currentDay + (offset * 7));
+    weekStart.setHours(0, 0, 0, 0);
+    
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+    
+    return { weekStart, weekEnd };
+  };
+
+  const { weekStart, weekEnd } = getWeekBounds(weekOffset);
+  
+  // Filter completions for current week
+  const weekCompletions = stats.recentCompletions.filter((c: any) => {
+    const compDate = new Date(c.date + 'T00:00:00');
+    return compDate >= weekStart && compDate <= weekEnd;
+  }).sort((a: any, b: any) => b.date.localeCompare(a.date));
+
+  // Get all days of the week (Sunday to Saturday)
+  const weekDays = [];
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(weekStart);
+    day.setDate(weekStart.getDate() + i);
+    const dateStr = day.toISOString().split('T')[0];
+    const completion = weekCompletions.find((c: any) => c.date === dateStr);
+    weekDays.push({
+      date: dateStr,
+      dayName: day.toLocaleDateString('en-US', { weekday: 'short' }),
+      completion: completion || null
+    });
+  }
+
+  const todayDateStr = getTodayDateString();
+  const todayCompletion = stats.recentCompletions.find((c: any) => c.date === todayDateStr);
+
+  const formatWeekRange = () => {
+    const startStr = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const endStr = weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return `${startStr} - ${endStr}`;
+  };
+
+  const isCurrentWeek = weekOffset === 0;
+  const canGoForward = weekOffset < 0;
 
   return (
 
-      <div className="space-y-6 mx-auto p-6 max-w-6xl">
-        <div className="bg-white shadow p-6 rounded-lg">
+      <div className="space-y-6 mx-auto p-2 md:p-6 max-w-6xl">
+        <div className="bg-white shadow p-2 md:p-6 rounded-lg">
           <h2 className="mb-4 font-bold text-xl">Display Name</h2>
           {editingName ? (
             <div>
@@ -122,59 +166,107 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+               {/* Today's Time Box */}
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg p-6 rounded-lg">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="mb-1 font-bold text-white text-xl">Today's Time</h2>
+              <p className="text-blue-100 text-sm">{todayDateStr}</p>
+            </div>
+            <div className="font-bold text-white text-4xl">
+              {todayCompletion ? (
+                <span className={todayCompletion.completed ? 'text-green-200' : 'text-orange-200'}>
+                  {todayCompletion.completed ? formatTime(todayCompletion.time) : 'Incomplete'}
+                </span>
+              ) : (
+                <span className="text-gray-300">-</span>
+              )}
+            </div>
+          </div>
+        </div>
 
-        <div className="gap-4 grid grid-cols-1 md:grid-cols-4">
-          <div className="bg-white shadow p-6 rounded-lg">
+        {/* Weekly Completions */}
+        <div className="bg-white shadow p-6 rounded-lg">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-bold text-xl">Weekly Times</h2>
+       
+          </div>
+          <div className="space-y-2">
+            {weekDays.map((day, i) => (
+              <div key={i} className="flex justify-between items-center py-3 border-b">
+                <div className="flex items-center gap-3">
+                  <span className="w-10 font-semibold text-gray-500 text-xs uppercase">{day.dayName}</span>
+                  <span className="text-gray-700">{day.date}</span>
+                </div>
+                <span className={`font-mono ${
+                  day.completion 
+                    ? day.completion.completed ? 'text-green-600' : 'text-orange-600'
+                    : 'text-gray-400'
+                }`}>
+                  {day.completion 
+                    ? day.completion.completed ? formatTime(day.completion.time) : 'Incomplete'
+                    : '-'
+                  }
+                </span>
+              </div>
+            ))}
+          </div>
+               <div className="flex justify-center items-center gap-2 mt-4">
+              <button
+                onClick={() => setWeekOffset(weekOffset - 1)}
+                className="bg-gray-200 hover:bg-gray-300 p-2 rounded-lg transition-colors"
+                title="Previous Week"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </button>
+              <span className="font-medium text-gray-700 text-sm">{formatWeekRange()}</span>
+              <button
+                onClick={() => setWeekOffset(weekOffset + 1)}
+                disabled={!canGoForward}
+                className={`p-2 rounded-lg transition-colors ${
+                  canGoForward ? 'bg-gray-200 hover:bg-gray-300' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                }`}
+                title="Next Week"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+        </div>
+
+        <div className="gap-4 grid grid-cols-2 md:grid-cols-5">
+          <div className="flex flex-col justify-between bg-white shadow p-6 rounded-lg">
             <div className="mb-1 text-gray-600 text-sm">Total Completions</div>
             <div className="font-bold text-blue-600 text-3xl">{stats.totalCompletions}</div>
           </div>
-          <div className="bg-white shadow p-6 rounded-lg">
+          <div className="flex flex-col justify-between bg-white shadow p-6 rounded-lg">
             <div className="mb-1 text-gray-600 text-sm">Did Not Complete</div>
             <div className="font-bold text-orange-600 text-3xl">{stats.didNotCompletes}</div>
           </div>
-          <div className="bg-white shadow p-6 rounded-lg">
+          <div className="flex flex-col justify-between bg-white shadow p-6 rounded-lg">
             <div className="mb-1 text-gray-600 text-sm">Best Time</div>
             <div className="font-bold text-green-600 text-3xl">
               {stats.bestTime ? formatTime(stats.bestTime) : '-'}
             </div>
           </div>
-          <div className="bg-white shadow p-6 rounded-lg">
+          <div className="flex flex-col justify-between bg-white shadow p-6 rounded-lg">
             <div className="mb-1 text-gray-600 text-sm">Average Time</div>
             <div className="font-bold text-purple-600 text-3xl">
               {stats.averageTime ? formatTime(stats.averageTime) : '-'}
             </div>
           </div>
-        </div>
-
-        <div className="bg-white shadow p-6 rounded-lg">
-          <h2 className="mb-4 font-bold text-xl">Monthly Completions</h2>
-          <div className="flex items-end gap-2 h-48">
-            {monthData.map((m, i) => (
-              <div key={i} className="flex flex-col flex-1 items-center">
-                <div 
-                  className="bg-blue-500 rounded-t w-full"
-                  style={{ height: `${(m.count / Math.max(...monthData.map(d => d.count))) * 100}%` }}
-                ></div>
-                <div className="mt-2 text-gray-600 text-xs">{m.label}</div>
-                <div className="font-bold text-sm">{m.count}</div>
-              </div>
-            ))}
+          <div className="flex flex-col justify-between bg-white shadow p-6 rounded-lg">
+            <div className="mb-1 text-gray-600 text-sm">Days with Best Time</div>
+            <div className="font-bold text-yellow-600 text-3xl">
+              {stats.daysWithBestTime ?? 0}
+            </div>
           </div>
         </div>
 
-        <div className="bg-white shadow p-6 rounded-lg">
-          <h2 className="mb-4 font-bold text-xl">Recent Completions</h2>
-          <div className="space-y-2">
-            {stats.recentCompletions.slice(0, 10).map((c: any, i: number) => (
-              <div key={i} className="flex justify-between items-center py-2 border-b">
-                <span className="text-gray-700">{c.date}</span>
-                <span className={`font-mono ${c.completed ? 'text-green-600' : 'text-orange-600'}`}>
-                  {c.completed ? formatTime(c.time) : 'Incomplete'}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+ 
 
         {isAdmin && (
           <div className="bg-white shadow p-6 rounded-lg">

@@ -1,6 +1,8 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useAuth } from './AuthContext';
+import { getTodayCompletion } from '../lib/dailyCompletions';
 
 interface GameContextType {
   foundSets: number;
@@ -11,15 +13,32 @@ interface GameContextType {
   setIsTimerRunning: (running: boolean) => void;
   showingSets: boolean;
   setShowingSets: (showing: boolean) => void;
+  todayCompleted: boolean;
+  setTodayCompleted: (completed: boolean) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export function GameProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [foundSets, setFoundSets] = useState(0);
   const [timerStartTime, setTimerStartTime] = useState(Date.now());
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [showingSets, setShowingSets] = useState(false);
+  const [todayCompleted, setTodayCompleted] = useState(false);
+
+  // Check if user has completed today's puzzle
+  useEffect(() => {
+    const checkCompletion = async () => {
+      if (user) {
+        const completion = await getTodayCompletion(user.uid);
+        setTodayCompleted(completion?.completed || completion?.showedAllSets || false);
+      } else {
+        setTodayCompleted(false);
+      }
+    };
+    checkCompletion();
+  }, [user]);
 
   return (
     <GameContext.Provider
@@ -32,6 +51,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setIsTimerRunning,
         showingSets,
         setShowingSets,
+        todayCompleted,
+        setTodayCompleted,
       }}
     >
       {children}
