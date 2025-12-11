@@ -98,7 +98,7 @@ export default function SetCard({ card, isSelected, isInSet = false, setLabels =
         hover:shadow-xl hover:scale-105
         ${isSelected ? 'ring-4 ring-blue-500 scale-105' : ''}
         ${isInSet && !isSelected ? 'ring-4 ring-purple-400' : ''}
-        p-2 md:p-4 aspect-[2/3] flex items-center justify-center w-full max-h-full relative
+        p-2 md:p-4 flex items-center justify-center w-full h-full relative
       `}
     >
       <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
