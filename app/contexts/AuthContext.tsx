@@ -1,28 +1,27 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth } from '../lib/firebase';
-import { isUserApproved, createUserRecord } from '../lib/users';
-import { logAuditEvent } from '../lib/auditLog';
+import { validateInviteCode } from '../lib/inviteCode';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  isApproved: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, inviteCode: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signUpWithGoogle: (inviteCode: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  isApproved: false,
   signIn: async () => {},
   signUp: async () => {},
   signInWithGoogle: async () => {},
+  signUpWithGoogle: async () => {},
   logout: async () => {},
 });
 
@@ -33,49 +32,10 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isApproved, setIsApproved] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user?.email) {
-        // Set verifying state to block operations during approval check
-        setIsVerifying(true);
-        setUser(null); // Don't set user until verified
-        setIsApproved(false);
-        
-        // Check if user is approved
-        try {
-          const approved = await isUserApproved(user.email);
-          
-          if (approved) {
-            // User is approved, set them as authenticated
-            setUser(user);
-            setIsApproved(true);
-          } else {
-            // User not approved, sign them out
-            await logAuditEvent('user_denied', user.uid, user.email, { reason: 'not_approved' }, 'warning');
-            await signOut(auth);
-            setUser(null);
-            setIsApproved(false);
-          }
-        } catch (error) {
-          // On error checking approval, sign out for safety
-          console.error('Error checking user approval, signing out:', error);
-          await logAuditEvent('system_error', user.uid, user.email, { error: String(error) }, 'error');
-          await signOut(auth);
-          setUser(null);
-          setIsApproved(false);
-        } finally {
-          setIsVerifying(false);
-        }
-      } else {
-        // No user signed in
-        setUser(null);
-        setIsApproved(false);
-        setIsVerifying(false);
-      }
-      
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
       setLoading(false);
     });
 
@@ -83,54 +43,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    // Sign in - onAuthStateChanged will handle approval check
     await signInWithEmailAndPassword(auth, email, password);
-    // Note: onAuthStateChanged listener will verify approval and log events
   };
 
-  const signUp = async (email: string, password: string) => {
-    try {
-      // Create the Firebase Auth account
-      const result = await createUserWithEmailAndPassword(auth, email, password);
-      
-      // Create user record in Firestore
-      await createUserRecord(email, result.user.uid);
-      await logAuditEvent('user_signup', result.user.uid, email, { method: 'email_password' }, 'info');
-      // Note: onAuthStateChanged listener will verify approval
-    } catch (error: any) {
-      // Don't reveal if email exists (prevents enumeration)
-      if (error.code === 'auth/email-already-in-use') {
-        throw new Error('Unable to create account. Please try signing in or contact support.');
-      }
-      throw error;
+  const signUp = async (email: string, password: string, inviteCode: string) => {
+    // Validate invite code first
+    const isValid = await validateInviteCode(inviteCode);
+    if (!isValid) {
+      throw new Error('Invalid invite code. Please check the code and try again.');
     }
+    
+    // Create the account
+    await createUserWithEmailAndPassword(auth, email, password);
   };
 
   const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    const result = await signInWithPopup(auth, provider);
-    
-    if (result.user?.email) {
-      // Ensure user record exists
-      await createUserRecord(result.user.email, result.user.uid);
-      // Note: onAuthStateChanged listener will verify approval and log events
+    await signInWithPopup(auth, new GoogleAuthProvider());
+  };
+
+  const signUpWithGoogle = async (inviteCode: string) => {
+    // Validate invite code first
+    const isValid = await validateInviteCode(inviteCode);
+    if (!isValid) {
+      throw new Error('Invalid invite code. Please check the code and try again.');
     }
+    
+    await signInWithPopup(auth, new GoogleAuthProvider());
   };
 
   const logout = async () => {
-    if (user) {
-      await logAuditEvent('user_signout', user.uid, user.email || undefined, {}, 'info');
-    }
     await signOut(auth);
   };
 
   const value = {
     user,
     loading,
-    isApproved,
     signIn,
     signUp,
     signInWithGoogle,
+    signUpWithGoogle,
     logout,
   };
 

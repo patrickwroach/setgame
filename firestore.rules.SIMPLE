@@ -1,0 +1,38 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users collection
+    match /users/{email} {
+      // Anyone authenticated can read their own record or approved users
+      allow read: if request.auth != null && 
+                     (request.auth.token.email.lower() == email.lower() || 
+                      (resource != null && resource.data.approved == true));
+      
+      // Anyone authenticated can create their own user record (sign up)
+      allow create: if request.auth != null &&
+                       request.auth.token.email.lower() == email.lower() &&
+                       request.resource.data.approved == false;
+      
+      // Users can update their own display name only
+      allow update: if request.auth != null &&
+                       request.auth.token.email.lower() == email.lower() &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName']);
+      
+      // No deletes from client
+      allow delete: if false;
+    }
+    
+    // Daily completions
+    match /daily_completions/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Deny everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

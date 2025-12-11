@@ -49,12 +49,11 @@ export async function createUserRecord(email: string, uid: string): Promise<void
       email: email.toLowerCase(),
       uid,
       displayName,
-      approved: false, // Require manual approval by admin
+      approved: false,
       createdAt: serverTimestamp(),
     });
   } catch (error) {
-    const isDev = process.env.NODE_ENV === 'development';
-    if (isDev) console.error('Error creating user record:', error);
+    console.error('Error creating user record:', error);
     throw error;
   }
 }

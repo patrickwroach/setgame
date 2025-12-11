@@ -5,25 +5,13 @@ service cloud.firestore {
     
     // Helper function to check if user is admin
     function isAdmin() {
-      return request.auth != null && 
-             exists(/databases/$(database)/documents/admin_users/$(request.auth.token.email.lower()));
+      return request.auth != null && request.auth.token.email == 'cyclopeanpublishingco@gmail.com';
     }
     
-    // Admin users collection - only readable by authenticated users
-    match /admin_users/{email} {
+    // Allowed emails - only admin can write, anyone authenticated can read
+    match /allowed_emails/{emailId} {
       allow read: if request.auth != null;
-      allow write: if false; // Only manually created via Firebase Console
-    }
-    
-    // Invite codes - anyone can read hash for validation, only admins can write
-    match /invite_codes/{docId} {
-      allow read: if true; // Can read hash publicly, actual code protected by client logic
       allow write: if isAdmin();
-    }
-    
-    // Sign-up attempts tracking (for rate limiting)
-    match /signup_attempts/{ip} {
-      allow read, write: if true; // Public for client-side rate limiting
     }
     
     // Daily completions

@@ -4,6 +4,24 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserStats, formatTime } from '../lib/stats';
 import { updateDisplayName } from '../lib/users';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import Link from 'next/link';
+import { getTodayInviteCode } from '../lib/inviteCode';
+
+async function isUserAdmin(email: string): Promise<boolean> {
+  try {
+    const q = query(
+      collection(db, 'admin_users'),
+      where('email', '==', email.toLowerCase())
+    );
+    const snapshot = await getDocs(q);
+    return !snapshot.empty;
+  } catch (error) {
+    console.error('Error checking admin status:', error);
+    return false;
+  }
+}
 
 export default function ProfilePage() {
   const { user, loading, logout } = useAuth();
@@ -11,6 +29,10 @@ export default function ProfilePage() {
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState('');
   const [loadingStats, setLoadingStats] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [inviteCode, setInviteCode] = useState('');
+  const [showCode, setShowCode] = useState(false);
+  const [codeExpiry, setCodeExpiry] = useState<string>('');
 
   useEffect(() => {
     if (loading) return;
@@ -23,6 +45,11 @@ export default function ProfilePage() {
     const data = await getUserStats(user.uid, user.email);
     setStats(data);
     setNewName(data.displayName);
+    
+    // Check if user is admin
+    const adminStatus = await isUserAdmin(user.email);
+    setIsAdmin(adminStatus);
+    
     setLoadingStats(false);
   }
 
@@ -148,6 +175,57 @@ export default function ProfilePage() {
             ))}
           </div>
         </div>
+
+        {isAdmin && (
+          <div className="bg-white shadow p-6 rounded-lg">
+            <h2 className="mb-4 font-bold text-xl">Admin Controls</h2>
+            <button
+              onClick={async () => {
+                const code = await getTodayInviteCode();
+                setInviteCode(code);
+                const expiryTime = new Date(Date.now() + 60 * 60 * 1000);
+                setCodeExpiry(expiryTime.toLocaleTimeString());
+                setShowCode(true);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 shadow-md px-6 py-3 rounded-lg w-full font-semibold text-white transition-colors"
+            >
+              Generate Invite Code
+            </button>
+          </div>
+        )}
+
+        {showCode && (
+          <div className="z-50 fixed inset-0 flex justify-center items-center bg-black bg-opacity-60 p-4">
+            <div className="bg-white shadow-2xl p-8 rounded-2xl w-full max-w-md">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="font-bold text-gray-900 text-3xl">Invite Code</h2>
+                <button
+                  onClick={() => setShowCode(false)}
+                  className="font-light text-gray-400 hover:text-gray-700 text-3xl"
+                >
+                  ×
+                </button>
+              </div>
+              
+              <div className="bg-blue-50 p-6 border-2 border-blue-300 rounded-lg">
+                <div className="mb-3 font-medium text-gray-700 text-sm">Share this code:</div>
+                <div className="mb-4 font-mono font-bold text-blue-600 text-4xl text-center">{inviteCode}</div>
+                <div className="mb-4 text-orange-600 text-sm text-center">
+                  ⏱️ Expires at {codeExpiry}
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(inviteCode);
+                    alert('Code copied to clipboard!');
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 shadow-md px-6 py-3 rounded-lg w-full font-semibold text-white transition-colors"
+                >
+                  Copy Code
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="bg-white shadow p-6 rounded-lg">
           <button

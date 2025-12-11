@@ -11,46 +11,67 @@ export default function AuthModal({ onClose }: AuthModalProps) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-  const [pendingApproval, setPendingApproval] = useState(false);
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signUpWithGoogle } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setPendingApproval(false);
+    setSuccess('');
     setLoading(true);
 
     try {
       if (isSignUp) {
-        await signUp(email, password);
-        // If we get here, account was created but needs approval
-        setPendingApproval(true);
+        await signUp(email, password, inviteCode);
       } else {
         await signIn(email, password);
         onClose();
       }
     } catch (err: any) {
-      setError(err.message || 'Authentication failed');
+      console.log('[AuthModal] Error caught:', err);
+      console.log('[AuthModal] Error code:', err.code);
+      console.log('[AuthModal] Error message:', err.message);
+      
+      if (err.message?.includes('administrator approval') || err.message?.includes('Account created')) {
+        setSuccess('Account created! Please wait for administrator approval.');
+      } else if (err.message?.includes('invite-only')) {
+        setError("This app is invite-only. Please contact the site administrators to request access.");
+      } else if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-email') {
+        setIsSignUp(true);
+        setError("Account not found. Please create an account.");
+      } else {
+        setError(err.message || 'Authentication failed');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleAuth = async () => {
     setError('');
-    setPendingApproval(false);
+    setSuccess('');
     setLoading(true);
+
     try {
-      await signInWithGoogle();
-      onClose();
-    } catch (err: any) {
-      // Check if it's an approval error
-      if (err.message?.includes('not approved')) {
-        setPendingApproval(true);
+      if (isSignUp) {
+        await signUpWithGoogle(inviteCode);
       } else {
-        setError(err.message || 'Google sign-in failed');
+        await signInWithGoogle();
+        onClose();
+      }
+    } catch (err: any) {
+      if (err.message?.includes('administrator approval') || err.message?.includes('Account created')) {
+        setSuccess('Account created! Please wait for administrator approval.');
+      } else if (err.message?.includes('invite-only')) {
+        setError("This app is invite-only. Please contact the site administrators to request access.");
+      } else if (err.message?.includes('No account found')) {
+        setIsSignUp(true);
+        setError("Account not found. Please create an account.");
+      } else {
+        setError(err.message || 'Authentication failed');
       }
     } finally {
       setLoading(false);
@@ -72,14 +93,18 @@ export default function AuthModal({ onClose }: AuthModalProps) {
           </button>
         </div>
 
-        {pendingApproval && (
-          <div className="bg-blue-100 mb-4 p-4 border border-blue-300 rounded-lg text-blue-800">
+        {success && (
+          <div className="bg-blue-50 mb-6 p-6 border-2 border-blue-300 rounded-lg">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">⏳</span>
+              <div className="flex-shrink-0 bg-blue-100 mt-0.5 p-2 rounded-full">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
               <div>
-                <p className="mb-1 font-semibold">Account Created - Pending Approval</p>
-                <p className="text-sm">
-                  Your account has been created successfully. An administrator will review and approve your access shortly.
+                <h3 className="font-semibold text-blue-900 text-lg">Account Created!</h3>
+                <p className="mt-1 text-blue-800 text-sm">
+                  Your account request has been submitted. An administrator will review and approve your account shortly. You'll be able to sign in once approved.
                 </p>
               </div>
             </div>
@@ -92,7 +117,24 @@ export default function AuthModal({ onClose }: AuthModalProps) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleEmailAuth} className="space-y-4">
+
+          {isSignUp && (
+            <div>
+              <label className="block mb-1 font-medium text-gray-700 text-sm">
+                Invite Code (required for email or google sign ups)
+              </label>
+              <input
+                type="text"
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                placeholder="ALPHA-123"
+                className="px-4 py-2 border border-gray-300 focus:border-transparent rounded-lg focus:ring-2 focus:ring-blue-500 w-full font-mono"
+                required
+              />
+            </div>
+          )}
+          <hr className="my-4 border-gray-300"/>
           <div>
             <label className="block mb-1 font-medium text-gray-700 text-sm">
               Email
@@ -131,7 +173,11 @@ export default function AuthModal({ onClose }: AuthModalProps) {
 
         <div className="mt-6 text-center">
           <button
-            onClick={() => setIsSignUp(!isSignUp)}
+            onClick={() => {
+              setIsSignUp(!isSignUp);
+              setError('');
+              setSuccess('');
+            }}
             className="font-medium text-blue-600 hover:text-blue-700 text-sm"
           >
             {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
@@ -148,7 +194,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
         </div>
 
         <button
-          onClick={handleGoogleSignIn}
+          onClick={handleGoogleAuth}
           disabled={loading}
           className="flex justify-center items-center gap-2 bg-white hover:bg-gray-50 py-3 border border-gray-300 rounded-lg w-full font-semibold text-gray-700 transition-colors"
         >
