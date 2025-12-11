@@ -7,15 +7,14 @@ import { getUserStats, formatTime } from '../lib/stats';
 import { updateDisplayName } from '../lib/users';
 
 export default function ProfilePage() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+  const { user, loading, logout } = useAuth();
   const [stats, setStats] = useState<any>(null);
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState('');
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) router.push('/');
+    if (loading) return;
     if (user) loadStats();
   }, [user, loading]);
 
@@ -62,23 +61,6 @@ export default function ProfilePage() {
   });
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="bg-white shadow-sm px-6 py-4 border-b">
-        <div className="flex justify-between items-center mx-auto max-w-6xl">
-          <div className="flex items-center gap-4">
-            <button onClick={() => router.push('/')} className="text-blue-600 hover:text-blue-800">
-              ← Back
-            </button>
-            <h1 className="font-bold text-2xl">My Profile</h1>
-          </div>
-          <button 
-            onClick={() => router.push('/rankings')}
-            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white"
-          >
-            View Rankings
-          </button>
-        </div>
-      </div>
 
       <div className="space-y-6 mx-auto p-6 max-w-6xl">
         <div className="bg-white shadow p-6 rounded-lg">
@@ -167,7 +149,16 @@ export default function ProfilePage() {
             ))}
           </div>
         </div>
+
+        <div className="bg-white shadow p-6 rounded-lg">
+          <button
+            onClick={() => logout()}
+            className="bg-red-600 hover:bg-red-700 shadow-md px-6 py-3 rounded-lg w-full font-semibold text-white transition-colors"
+          >
+            Sign Out
+          </button>
+        </div>
       </div>
-    </div>
+
   );
 }

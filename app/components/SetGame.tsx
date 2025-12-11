@@ -205,7 +205,7 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col flex-1 px-4 py-4 overflow-hidden">
       {/* Only show message for completion or important states */}
       {(message.includes('✅') || message.includes('🎉') || message.includes('⚠️') || message.includes('💡')) && (
         <div className={`text-center text-lg font-bold mb-3 p-3 rounded-lg flex-shrink-0 ${
