@@ -1,7 +1,7 @@
 import { db } from './firebase';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import { getAllCompletions } from './dailyCompletions';
-import { getUserData, getUserDataByUid } from './users';
+import { getUserDataByUid } from './users';
 
 export interface UserStats {
   userId: string;
@@ -30,9 +30,9 @@ export interface LeaderboardEntry {
 /**
  * Get comprehensive stats for a user
  */
-export async function getUserStats(userId: string, userEmail: string): Promise<UserStats> {
+export async function getUserStats(userId: string): Promise<UserStats> {
   const completions = await getAllCompletions(userId);
-  const userData = await getUserData(userEmail);
+  const userData = await getUserDataByUid(userId);
   
   const completionArray = Object.entries(completions).map(([date, data]) => ({
     date,
@@ -65,10 +65,13 @@ export async function getUserStats(userId: string, userEmail: string): Promise<U
   // Count days with best time
   const daysWithBestTime = await countDaysWithBestTime(userId);
 
+  const userEmail = userData?.email || '';
+  const displayName = userData?.displayName || userEmail.split('@')[0] || 'User';
+
   return {
     userId,
     email: userEmail,
-    displayName: userData?.displayName || userEmail.split('@')[0],
+    displayName,
     totalCompletions: validCompletions.length,
     didNotCompletes,
     bestTime,
