@@ -48,9 +48,6 @@ export default function Navigation() {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <span className="hidden md:inline mr-2 text-gray-600 text-sm">
-            {user.email}
-          </span>
           <button
             onClick={() => router.push('/profile')}
             className="bg-blue-600 hover:bg-blue-700 shadow-md p-2 rounded-lg text-white transition-colors"
