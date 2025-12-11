@@ -33,6 +33,7 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
   const [hasShownSets, setHasShownSets] = useState<boolean>(false);
   const [todayCompleted, setTodayCompleted] = useState<boolean>(false);
   const [currentDate, setCurrentDate] = useState<string>('');
+  const [gameStarted, setGameStarted] = useState<boolean>(false);
 
   // Safety check: Only load puzzle if user is authenticated
   useEffect(() => {
@@ -51,11 +52,8 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
     setShowingSets(false);
     setHasShownSets(false);
     setAllSets(findAllSets(dailyBoard));
-    const newStartTime = Date.now();
-    setTimerStartTime(newStartTime);
-    setIsTimerRunning(true);
-    onTimerChange(newStartTime, true);
     setCompletionTime(null);
+    setGameStarted(false);
     
     // Check if user already completed today's puzzle
     if (user) {
@@ -65,19 +63,30 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
         setIsTimerRunning(false);
         onTimerChange(timerStartTime, false);
         setCompletionTime(completion.completionTime);
+        setGameStarted(true);
         setMessage(`✅ You already completed today's puzzle in ${formatTime(completion.completionTime)}!`);
       } else if (completion?.showedAllSets) {
         setTodayCompleted(true);
         setIsTimerRunning(false);
         onTimerChange(timerStartTime, false);
+        setGameStarted(true);
         setMessage(`⚠️ You showed all sets today - marked as incomplete`);
       } else {
         setTodayCompleted(false);
-        setMessage('Find the sets! Today\'s daily puzzle has 4 valid sets.');
+        setMessage('');
       }
     } else {
-      setMessage('Find the sets! Today\'s daily puzzle has 4 valid sets.');
+      setMessage('');
     }
+  };
+
+  const handleStartGame = () => {
+    setGameStarted(true);
+    const newStartTime = Date.now();
+    setTimerStartTime(newStartTime);
+    setIsTimerRunning(true);
+    onTimerChange(newStartTime, true);
+    setMessage('');
   };
 
 
@@ -206,8 +215,26 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
 
   return (
     <div className="flex flex-col flex-1 px-4 py-4 overflow-hidden">
-      {/* Only show message for completion or important states */}
-      {(message.includes('✅') || message.includes('🎉') || message.includes('⚠️') || message.includes('💡')) && (
+      {!gameStarted && !todayCompleted && (
+        <div className="flex flex-col flex-1 justify-center items-center">
+          <div className="mb-8 text-center">
+            <h2 className="mb-4 font-bold text-gray-800 text-3xl">Daily SET Challenge</h2>
+            <p className="mb-2 text-gray-600">Find all 4 valid sets on the board</p>
+            <p className="text-gray-500 text-sm">Your time starts when you click the button below</p>
+          </div>
+          <button
+            onClick={handleStartGame}
+            className="bg-blue-600 hover:bg-blue-700 shadow-lg px-8 py-4 rounded-lg font-bold text-white text-xl transition-colors"
+          >
+            Start Game
+          </button>
+        </div>
+      )}
+
+ 
+      {gameStarted && (
+      <>
+        {(message.includes('✅') || message.includes('🎉') || message.includes('⚠️') || message.includes('💡')) && (
         <div className={`text-center text-lg font-bold mb-3 p-3 rounded-lg flex-shrink-0 ${
           message.includes('✅') ? 'bg-green-100 text-green-800' :
           message.includes('🎉') ? 'bg-yellow-100 text-yellow-800' :
@@ -252,6 +279,8 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
           ))}
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }
