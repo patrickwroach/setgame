@@ -51,6 +51,7 @@ export async function createUserRecord(email: string, uid: string): Promise<void
       uid,
       displayName,
       approved: false,
+      admin: false,
       createdAt: serverTimestamp(),
     });
   } catch (error) {

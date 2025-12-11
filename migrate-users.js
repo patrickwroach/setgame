@@ -47,6 +47,7 @@ async function resetUsers() {
         email: email.toLowerCase(),
         displayName: displayName,
         approved: true, // Auto-approve existing users
+        admin: false, // Default to non-admin, can be updated manually
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       };
       

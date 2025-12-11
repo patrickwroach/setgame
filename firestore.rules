@@ -6,13 +6,7 @@ service cloud.firestore {
     // Helper function to check if user is admin
     function isAdmin() {
       return request.auth != null && 
-             exists(/databases/$(database)/documents/admin_users/$(request.auth.token.email.lower()));
-    }
-    
-    // Admin users collection - only readable by authenticated users
-    match /admin_users/{email} {
-      allow read: if request.auth != null;
-      allow write: if false; // Only manually created via Firebase Console
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.admin == true;
     }
     
     // Invite codes - anyone can read hash for validation, only admins can write
@@ -33,10 +27,14 @@ service cloud.firestore {
     }
     
     // Users collection (keyed by UID)
+    // Users can update their own document but cannot change admin or approved fields
     match /users/{userId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null && request.auth.uid == userId;
-      allow update: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && 
+                      request.auth.uid == userId &&
+                      request.resource.data.admin == resource.data.admin &&
+                      request.resource.data.approved == resource.data.approved;
       allow delete: if false;
     }
     

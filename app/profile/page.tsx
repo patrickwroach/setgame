@@ -3,25 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserStats, formatTime } from '../lib/stats';
-import { updateDisplayName } from '../lib/users';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { updateDisplayName, getUserDataByUid } from '../lib/users';
 import { getTodayInviteCode } from '../lib/inviteCode';
 import { getTodayDateString } from '../lib/dailyPuzzle';
-
-async function isUserAdmin(email: string): Promise<boolean> {
-  try {
-    const q = query(
-      collection(db, 'admin_users'),
-      where('email', '==', email.toLowerCase())
-    );
-    const snapshot = await getDocs(q);
-    return !snapshot.empty;
-  } catch (error) {
-    console.error('Error checking admin status:', error);
-    return false;
-  }
-}
 
 export default function ProfilePage() {
   const { user, loading, logout } = useAuth();
@@ -43,13 +27,13 @@ export default function ProfilePage() {
   async function loadStats() {
     if (!user?.email) return;
     setLoadingStats(true);
-    const data = await getUserStats(user.uid, user.email);
+    const data = await getUserStats(user.uid);
     setStats(data);
     setNewName(data.displayName);
     
-    // Check if user is admin
-    const adminStatus = await isUserAdmin(user.email);
-    setIsAdmin(adminStatus);
+    // Check if user is admin from user document
+    const userData = await getUserDataByUid(user.uid);
+    setIsAdmin(userData?.admin === true);
     
     setLoadingStats(false);
   }

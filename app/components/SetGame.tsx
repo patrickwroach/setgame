@@ -274,7 +274,7 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
       <div className="flex flex-1 justify-center items-center p-2 min-h-0">
         <div className="gap-2 sm:gap-3 grid grid-cols-3 md:grid-cols-4 grid-rows-4 md:grid-rows-3 w-full max-w-[1200px] h-full max-h-[calc(100vh-80px)] md:aspect-[960/494]">
           {board.map((card, index) => (
-            <div key={index} className="w-full aspect-[2/3] md:aspect-[3/2]">
+            <div key={index} className="w-full aspect-square md:aspect-[3/2]">
               <SetCard
                 card={card}
                 isSelected={selectedCards.includes(index)}

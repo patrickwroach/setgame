@@ -145,8 +145,14 @@ export default function RankingsPage() {
           </div>
 
           {todayLeaderboard.length === 0 ? (
-            <div className="py-12 text-gray-500 text-center">
-              No completions for this day yet.
+            <div className="flex flex-col justify-center items-center py-12 text-center">
+              <div className="bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg mb-4 p-8 rounded-lg">
+                <svg className="mx-auto mb-4 w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 className="mb-2 font-semibold text-white text-xl">Waiting for Sets to be Found</h3>
+                <p className="text-blue-100">No matches have been completed for this day yet.</p>
+              </div>
             </div>
           ) : (
             <div className="space-y-2">
@@ -224,8 +230,14 @@ export default function RankingsPage() {
           </div>
 
           {weekLeaderboard.length === 0 ? (
-            <div className="py-12 text-gray-500 text-center">
-              No completions for this week yet.
+            <div className="flex flex-col justify-center items-center py-12 text-center">
+              <div className="bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg mb-4 p-8 rounded-lg">
+                <svg className="mx-auto mb-4 w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 className="mb-2 font-semibold text-white text-xl">Waiting for Sets to be Found</h3>
+                <p className="text-blue-100">No matches have been completed for this week yet.</p>
+              </div>
             </div>
           ) : (
             <div className="space-y-2">
