@@ -18,6 +18,9 @@ export default function ProfilePage() {
   const [showCode, setShowCode] = useState(false);
   const [codeExpiry, setCodeExpiry] = useState<string>('');
   const [weekOffset, setWeekOffset] = useState(0);
+  
+  // Launch date: December 11, 2024
+  const LAUNCH_DATE = new Date('2024-12-11T00:00:00');
 
   useEffect(() => {
     if (loading) return;
@@ -113,6 +116,10 @@ export default function ProfilePage() {
 
   const isCurrentWeek = weekOffset === 0;
   const canGoForward = weekOffset < 0;
+  
+  // Check if we can go back further (check if the PREVIOUS week would still be >= launch date)
+  const { weekStart: previousWeekStart } = getWeekBounds(weekOffset - 1);
+  const canGoBackWeekly = previousWeekStart >= LAUNCH_DATE;
 
   return (
 
@@ -198,8 +205,10 @@ export default function ProfilePage() {
                <div className="flex justify-center items-center gap-2 mt-4">
               <button
                 onClick={() => setWeekOffset(weekOffset - 1)}
-                disabled={true}
-                className="bg-gray-100 p-2 rounded-lg text-gray-400 transition-colors cursor-not-allowed"
+                disabled={!canGoBackWeekly}
+                className={`p-2 rounded-lg transition-colors ${
+                  canGoBackWeekly ? 'bg-gray-200 hover:bg-gray-300' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                }`}
                 title="Previous Week"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">

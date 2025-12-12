@@ -20,6 +20,9 @@ export default function RankingsPage() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'daily' | 'weekly'>('daily');
+  
+  // Launch date: December 11, 2024
+  const LAUNCH_DATE = new Date('2024-12-11T00:00:00');
 
   useEffect(() => {
     loadLeaderboards();
@@ -112,6 +115,14 @@ export default function RankingsPage() {
   const isToday = dayOffset === 0;
   const isCurrentWeek = weekOffset === 0;
   const canGoForward = (activeTab === 'daily' ? dayOffset : weekOffset) < 0;
+  
+  // Check if we can go back further (check if the PREVIOUS day/week would still be >= launch date)
+  const previousDate = getDateForOffset(dayOffset - 1);
+  const previousDateObj = new Date(previousDate + 'T00:00:00');
+  const canGoBackDaily = previousDateObj >= LAUNCH_DATE;
+  
+  const { weekStart: previousWeekStart } = getWeekBounds(weekOffset - 1);
+  const canGoBackWeekly = previousWeekStart >= LAUNCH_DATE;
 
   if (loading) return <div className="p-8">Loading...</div>;
 
@@ -196,8 +207,10 @@ export default function RankingsPage() {
           <div className="flex justify-center items-center gap-2 mt-4">
             <button
               onClick={() => setDayOffset(dayOffset - 1)}
-              disabled={true}
-              className="bg-gray-100 p-2 rounded-lg text-gray-400 transition-colors cursor-not-allowed"
+              disabled={!canGoBackDaily}
+              className={`p-2 rounded-lg transition-colors ${
+                canGoBackDaily ? 'bg-gray-200 hover:bg-gray-300' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              }`}
               title="Previous Day"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
@@ -292,8 +305,10 @@ export default function RankingsPage() {
           <div className="flex justify-center items-center gap-2 mt-4">
             <button
               onClick={() => setWeekOffset(weekOffset - 1)}
-              disabled={true}
-              className="bg-gray-100 p-2 rounded-lg text-gray-400 transition-colors cursor-not-allowed"
+              disabled={!canGoBackWeekly}
+              className={`p-2 rounded-lg transition-colors ${
+                canGoBackWeekly ? 'bg-gray-200 hover:bg-gray-300' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              }`}
               title="Previous Week"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
