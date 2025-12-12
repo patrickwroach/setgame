@@ -113,7 +113,7 @@ export default function ProfilePage() {
     const endStr = weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     return `${startStr} - ${endStr}`;
   };
-
+// TODO:This doesn't work
   const isCurrentWeek = weekOffset === 0;
   const canGoForward = weekOffset < 0;
   
