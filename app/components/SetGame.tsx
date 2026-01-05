@@ -15,6 +15,7 @@ interface SetGameProps {
   onCompletionChange: (completed: boolean) => void;
 }
 const setsToFind = 6;
+const labels = ['A', 'B', 'C', 'D','E', 'F'];
 export default function SetGame({ onShowSetsClick, showingSets: externalShowingSets, onFoundSetsChange, onTimerChange, onCompletionChange }: SetGameProps) {
   const { user } = useAuth();
   const [board, setBoard] = useState<Card[]>([]);
@@ -209,7 +210,6 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
 
   const getCardSetLabels = (cardIndex: number): string[] => {
     if (!showingSets) return [];
-    const labels = ['A', 'B', 'C', 'D'];
     const setLabels: string[] = [];
     allSets.forEach((set, idx) => {
       if (set.includes(cardIndex)) {
@@ -257,7 +257,7 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
           <div className="mb-2 font-semibold text-purple-800 text-sm">All Sets on Board:</div>
           <div className="space-y-1">
             {allSets.map((set, idx) => {
-              const labels = ['A', 'B', 'C', 'D','E', 'F'];
+
               return (
                 <div key={idx} className="flex items-center gap-2 text-purple-700 text-xs">
                   <span className="flex justify-center items-center bg-purple-600 rounded-full w-5 h-5 font-bold text-white text-xs">
