@@ -224,13 +224,13 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
       {!gameStarted && !todayCompleted && (
         <div className="flex flex-col flex-1 justify-center items-center">
           <div className="mb-8 text-center">
-            <h2 className="mb-4 font-bold text-gray-800 text-3xl">Daily SET Challenge</h2>
-            <p className="mb-2 text-gray-600">{`Find all ${setsToFind} valid sets on the board`}</p>
-            <p className="text-gray-500 text-sm">Your time starts when you click the button below</p>
+            <h2 className="mb-4 font-bold text-foreground text-3xl">Daily SET Challenge</h2>
+            <p className="mb-2 text-muted-foreground">{`Find all ${setsToFind} valid sets on the board`}</p>
+            <p className="text-muted-foreground text-sm">Your time starts when you click the button below</p>
           </div>
           <button
             onClick={handleStartGame}
-            className="bg-blue-600 hover:bg-blue-700 shadow-lg px-8 py-4 rounded-lg font-bold text-white text-xl transition-colors"
+            className="bg-primary hover:bg-primary/90 shadow-lg px-8 py-4 rounded-lg font-bold text-primary-foreground text-xl transition-colors"
           >
             Start Game
           </button>
@@ -242,25 +242,25 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
       <>
         {(message.includes('✅') || message.includes('🎉') || message.includes('⚠️') || message.includes('💡')) && (
         <div className={`text-center text-lg font-bold mb-3 p-3 rounded-lg flex-shrink-0 ${
-          message.includes('✅') ? 'bg-green-100 text-green-800' :
-          message.includes('🎉') ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white' :
-          message.includes('⚠️') ? 'bg-orange-100 text-orange-800' :
-          message.includes('💡') ? 'bg-purple-100 text-purple-800' :
-          'bg-blue-100 text-blue-800'
+          message.includes('✅') ? 'bg-success text-success-foreground' :
+          message.includes('🎉') ? 'bg-linear-to-r from-gradient-start to-gradient-end text-white' :
+          message.includes('⚠️') ? 'bg-destructive/20 text-destructive-foreground' :
+          message.includes('💡') ? 'bg-accent text-accent-foreground' :
+          'bg-muted text-muted-foreground'
         }`}>
           {message}
         </div>
       )}
 
       {showingSets && (
-        <div className="flex-shrink-0 bg-purple-50 mb-3 p-3 border border-purple-200 rounded-lg">
-          <div className="mb-2 font-semibold text-purple-800 text-sm">All Sets on Board:</div>
+        <div className="flex-shrink-0 bg-accent/20 mb-3 p-3 border border-accent rounded-lg">
+          <div className="mb-2 font-semibold text-sm text-accent-foreground">All Sets on Board:</div>
           <div className="space-y-1">
             {allSets.map((set, idx) => {
 
               return (
-                <div key={idx} className="flex items-center gap-2 text-purple-700 text-xs">
-                  <span className="flex justify-center items-center bg-purple-600 rounded-full w-5 h-5 font-bold text-white text-xs">
+                <div key={idx} className="flex items-center gap-2 text-xs text-accent-foreground">
+                  <span className="flex justify-center items-center bg-accent rounded-full w-5 h-5 font-bold text-xs text-accent-foreground">
                     {labels[idx]}
                   </span>
                   <span>Cards at positions {set.map(i => i + 1).join(', ')}</span>

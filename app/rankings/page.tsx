@@ -129,11 +129,11 @@ export default function RankingsPage() {
   return (
     <div className="space-y-6 mx-auto p-6 max-w-6xl">
       {/* Tab Navigation */}
-      <div className="flex gap-2 bg-white shadow p-2 rounded-lg">
+      <div className="flex gap-2 bg-card shadow p-2 rounded-lg">
         <button
           onClick={() => setActiveTab('daily')}
           className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-colors ${
-            activeTab === 'daily' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            activeTab === 'daily' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
           }`}
         >
           Daily Leaderboard
@@ -141,7 +141,7 @@ export default function RankingsPage() {
         <button
           onClick={() => setActiveTab('weekly')}
           className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-colors ${
-            activeTab === 'weekly' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            activeTab === 'weekly' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
           }`}
         >
           Weekly Leaderboard
@@ -150,19 +150,19 @@ export default function RankingsPage() {
 
       {/* Daily Leaderboard */}
       {activeTab === 'daily' && (
-        <div className="bg-white shadow p-6 rounded-lg">
+        <div className="bg-card shadow p-6 rounded-lg">
           <div className="mb-6">
-            <h2 className="font-bold text-2xl">Daily Leaderboard</h2>
+            <h2 className="font-bold text-foreground text-2xl">Daily Leaderboard</h2>
           </div>
 
           {todayLeaderboard.length === 0 ? (
             <div className="flex flex-col justify-center items-center py-12 text-center">
-              <div className="bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg mb-4 p-8 rounded-lg">
+              <div className="bg-linear-to-r from-gradient-start to-gradient-end shadow-lg mb-4 p-8 rounded-lg">
                 <svg className="mx-auto mb-4 w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <h3 className="mb-2 font-semibold text-white text-xl">Waiting for Sets to be Found</h3>
-                <p className="text-blue-100">No matches have been completed for this day yet.</p>
+                <p className="text-white/80">No matches have been completed for this day yet.</p>
               </div>
             </div>
           ) : (
@@ -172,31 +172,31 @@ export default function RankingsPage() {
                   key={entry.userId}
                   className={`flex justify-between items-center p-4 rounded-lg ${
                     index === 0
-                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
+                      ? 'bg-linear-to-r from-gradient-start to-gradient-end text-white'
                       : user?.uid === entry.userId
-                      ? 'bg-blue-50 border-2 border-blue-300'
-                      : 'bg-gray-50'
+                      ? 'bg-primary/10 border-2 border-primary'
+                      : 'bg-secondary'
                   }`}
                 >
                   <div className="flex items-center gap-4">
                     <div className={`flex justify-center items-center rounded-full w-10 h-10 font-bold text-lg ${
                       index === 0 ? 'bg-yellow-400 text-yellow-900' :
-                      index === 1 ? 'bg-gray-300 text-gray-700' :
+                      index === 1 ? 'bg-muted text-muted-foreground' :
                       index === 2 ? 'bg-orange-300 text-orange-900' :
-                      'bg-gray-200 text-gray-600'
+                      'bg-muted/50 text-muted-foreground'
                     }`}>
                       {index + 1}
                     </div>
                     <div className="max-w-[300px]">
                       <div className={`font-semibold truncate ${
-                        index === 0 ? 'text-white' : 'text-gray-900'
+                        index === 0 ? 'text-white' : 'text-foreground'
                       }`}>
                         {entry.displayName}
                       </div>
                     </div>
                   </div>
                   <div className={`font-mono font-bold text-xl ${
-                    index === 0 ? 'text-yellow-200' : 'text-green-600'
+                    index === 0 ? 'text-yellow-200' : 'text-success'
                   }`}>
                     {formatTime(entry.time)}
                   </div>
@@ -209,7 +209,7 @@ export default function RankingsPage() {
               onClick={() => setDayOffset(dayOffset - 1)}
               disabled={!canGoBackDaily}
               className={`p-2 rounded-lg transition-colors ${
-                canGoBackDaily ? 'bg-gray-200 hover:bg-gray-300' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                canGoBackDaily ? 'bg-secondary hover:bg-secondary/80' : 'bg-muted text-muted-foreground cursor-not-allowed'
               }`}
               title="Previous Day"
             >
@@ -217,14 +217,14 @@ export default function RankingsPage() {
                 <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
             </button>
-            <span className="font-medium text-gray-700 text-sm">
+            <span className="font-medium text-foreground text-sm">
               {formatDate(currentDate)}
             </span>
             <button
               onClick={() => setDayOffset(dayOffset + 1)}
               disabled={!canGoForward}
               className={`p-2 rounded-lg transition-colors ${
-                canGoForward ? 'bg-gray-200 hover:bg-gray-300' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                canGoForward ? 'bg-secondary hover:bg-secondary/80' : 'bg-muted text-muted-foreground cursor-not-allowed'
               }`}
               title="Next Day"
             >
@@ -238,19 +238,19 @@ export default function RankingsPage() {
 
       {/* Weekly Leaderboard */}
       {activeTab === 'weekly' && (
-        <div className="bg-white shadow p-6 rounded-lg">
+        <div className="bg-card shadow p-6 rounded-lg">
           <div className="mb-6">
-            <h2 className="font-bold text-2xl">Weekly Leaderboard</h2>
+            <h2 className="font-bold text-foreground text-2xl">Weekly Leaderboard</h2>
           </div>
 
           {weekLeaderboard.length === 0 ? (
             <div className="flex flex-col justify-center items-center py-12 text-center">
-              <div className="bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg mb-4 p-8 rounded-lg">
+              <div className="bg-linear-to-r from-gradient-start to-gradient-end shadow-lg mb-4 p-8 rounded-lg">
                 <svg className="mx-auto mb-4 w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <h3 className="mb-2 font-semibold text-white text-xl">Waiting for Sets to be Found</h3>
-                <p className="text-blue-100">No matches have been completed for this week yet.</p>
+                <p className="text-white/80">No matches have been completed for this week yet.</p>
               </div>
             </div>
           ) : (
@@ -260,40 +260,40 @@ export default function RankingsPage() {
                   key={entry.userId}
                   className={`flex justify-between items-center p-4 rounded-lg ${
                     index === 0
-                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
+                      ? 'bg-linear-to-r from-gradient-start to-gradient-end text-white'
                       : user?.uid === entry.userId
-                      ? 'bg-blue-50 border-2 border-blue-300'
-                      : 'bg-gray-50'
+                      ? 'bg-primary/10 border-2 border-primary'
+                      : 'bg-secondary'
                   }`}
                 >
                   <div className="flex items-center gap-4">
                     <div className={`flex justify-center items-center rounded-full w-10 h-10 font-bold text-lg ${
                       index === 0 ? 'bg-yellow-400 text-yellow-900' :
-                      index === 1 ? 'bg-gray-300 text-gray-700' :
+                      index === 1 ? 'bg-muted text-muted-foreground' :
                       index === 2 ? 'bg-orange-300 text-orange-900' :
-                      'bg-gray-200 text-gray-600'
+                      'bg-muted/50 text-muted-foreground'
                     }`}>
                       {index + 1}
                     </div>
                     <div className="max-w-[300px]">
                       <div className={`font-semibold truncate ${
-                        index === 0 ? 'text-white' : 'text-gray-900'
+                        index === 0 ? 'text-white' : 'text-foreground'
                       }`}>
                         {entry.displayName}
                       </div>
                       <div className={`text-sm ${
-                        index === 0 ? 'text-blue-100' : 'text-gray-500'
+                        index === 0 ? 'text-white/80' : 'text-muted-foreground'
                       }`}>
                         {entry.totalDays} day{entry.totalDays !== 1 ? 's' : ''} played
                       </div>
                     </div>
                   </div>
                   <div className={`font-bold text-xl ${
-                    index === 0 ? 'text-yellow-200' : 'text-green-600'
+                    index === 0 ? 'text-yellow-200' : 'text-success'
                   }`}>
                     {entry.bestDays}
                     <div className={`text-xs font-normal ${
-                      index === 0 ? 'text-blue-100' : 'text-gray-500'
+                      index === 0 ? 'text-white/80' : 'text-muted-foreground'
                     }`}>
                       win{entry.bestDays !== 1 ? 's' : ''}
                     </div>
@@ -307,7 +307,7 @@ export default function RankingsPage() {
               onClick={() => setWeekOffset(weekOffset - 1)}
               disabled={!canGoBackWeekly}
               className={`p-2 rounded-lg transition-colors ${
-                canGoBackWeekly ? 'bg-gray-200 hover:bg-gray-300' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                canGoBackWeekly ? 'bg-secondary hover:bg-secondary/80' : 'bg-muted text-muted-foreground cursor-not-allowed'
               }`}
               title="Previous Week"
             >
@@ -315,14 +315,14 @@ export default function RankingsPage() {
                 <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
             </button>
-            <span className="font-medium text-gray-700 text-sm">
+            <span className="font-medium text-foreground text-sm">
               {formatWeekRange()}
             </span>
             <button
               onClick={() => setWeekOffset(weekOffset + 1)}
               disabled={!canGoForward}
               className={`p-2 rounded-lg transition-colors ${
-                canGoForward ? 'bg-gray-200 hover:bg-gray-300' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                canGoForward ? 'bg-secondary hover:bg-secondary/80' : 'bg-muted text-muted-foreground cursor-not-allowed'
               }`}
               title="Next Week"
             >

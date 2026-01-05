@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { getUserStats, formatTime } from '../lib/stats';
 import { updateDisplayName, getUserDataByUid } from '../lib/users';
 import { getTodayInviteCode } from '../lib/inviteCode';
@@ -9,6 +10,7 @@ import { getTodayDateString } from '../lib/dailyPuzzle';
 
 export default function ProfilePage() {
   const { user, loading, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [stats, setStats] = useState<any>(null);
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState('');
@@ -124,8 +126,8 @@ export default function ProfilePage() {
   return (
 
       <div className="space-y-6 mx-auto p-2 md:p-6 max-w-6xl">
-        <div className="bg-white shadow p-2 md:p-6 rounded-lg">
-          <h2 className="mb-4 font-bold text-xl">Display Name</h2>
+        <div className="bg-card shadow p-2 md:p-6 rounded-lg">
+          <h2 className="mb-4 font-bold text-foreground text-xl">Display Name</h2>
           {editingName ? (
             <div>
               <div className="flex gap-2">
@@ -133,66 +135,106 @@ export default function ProfilePage() {
                   type="text"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded"
+                  className="flex-1 bg-background px-3 py-2 border border-input rounded text-foreground"
                   placeholder="Enter display name"
                   maxLength={50}
                 />
-                <button onClick={saveName} className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white">
+                <button onClick={saveName} className="bg-primary hover:bg-primary/90 px-4 py-2 rounded text-primary-foreground">
                   Save
                 </button>
-                <button onClick={() => setEditingName(false)} className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded text-gray-700">
+                <button onClick={() => setEditingName(false)} className="bg-secondary hover:bg-secondary/80 px-4 py-2 rounded text-secondary-foreground">
                   Cancel
                 </button>
               </div>
-              <p className="mt-1 text-gray-500 text-xs">
+              <p className="mt-1 text-muted-foreground text-xs">
                 {newName.length}/50 characters. Letters, numbers, spaces, hyphens, and underscores only.
               </p>
             </div>
           ) : (
             <div className="flex justify-between items-center">
               <span className="text-lg">{stats.displayName}</span>
-              <button onClick={() => setEditingName(true)} className="text-blue-600 hover:text-blue-800">
+              <button onClick={() => setEditingName(true)} className="text-primary hover:text-primary/90">
                 Edit
               </button>
             </div>
           )}
         </div>
+
+        <div className="bg-card shadow p-2 md:p-6 rounded-lg">
+          <h2 className="mb-4 font-bold text-foreground text-xl">Theme</h2>
+          <div className="space-y-3">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="radio"
+                name="theme"
+                value="light"
+                checked={theme === 'light'}
+                onChange={(e) => setTheme(e.target.value as 'light' | 'dark' | 'system')}
+                className="focus:ring-2 focus:ring-primary w-4 h-4 text-primary"
+              />
+              <span className="text-foreground">Light</span>
+            </label>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="radio"
+                name="theme"
+                value="dark"
+                checked={theme === 'dark'}
+                onChange={(e) => setTheme(e.target.value as 'light' | 'dark' | 'system')}
+                className="focus:ring-2 focus:ring-primary w-4 h-4 text-primary"
+              />
+              <span className="text-foreground">Dark</span>
+            </label>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="radio"
+                name="theme"
+                value="system"
+                checked={theme === 'system'}
+                onChange={(e) => setTheme(e.target.value as 'light' | 'dark' | 'system')}
+                className="focus:ring-2 focus:ring-primary w-4 h-4 text-primary"
+              />
+              <span className="text-foreground">Automatic (System)</span>
+            </label>
+          </div>
+        </div>
+
                {/* Today's Time Box */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg p-6 rounded-lg">
+        <div className="bg-linear-to-r from-gradient-start to-gradient-end shadow-lg p-6 rounded-lg">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="mb-1 font-bold text-white text-xl">Today's Time</h2>
-              <p className="text-blue-100 text-sm">{todayDateStr}</p>
+              <p className="text-white/80 text-sm">{todayDateStr}</p>
             </div>
             <div className="font-bold text-white text-4xl">
               {todayCompletion ? (
-                <span className={todayCompletion.completed ? 'text-green-200' : 'text-orange-200'}>
+                <span className={todayCompletion.completed ? 'text-success-foreground' : 'text-orange-200'}>
                   {todayCompletion.completed ? formatTime(todayCompletion.time) : 'Incomplete'}
                 </span>
               ) : (
-                <span className="text-gray-300">-</span>
+                <span className="text-white/50">-</span>
               )}
             </div>
           </div>
         </div>
 
         {/* Weekly Completions */}
-        <div className="bg-white shadow p-6 rounded-lg">
+        <div className="bg-card shadow p-6 rounded-lg">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="font-bold text-xl">Weekly Times</h2>
+            <h2 className="font-bold text-foreground text-xl">Weekly Times</h2>
        
           </div>
           <div className="space-y-2">
             {weekDays.map((day, i) => (
               <div key={i} className="flex justify-between items-center py-3 border-b">
                 <div className="flex items-center gap-3">
-                  <span className="w-10 font-semibold text-gray-500 text-xs uppercase">{day.dayName}</span>
-                  <span className="text-gray-700">{day.date}</span>
+                  <span className="w-10 font-semibold text-muted-foreground text-xs uppercase">{day.dayName}</span>
+                  <span className="text-foreground">{day.date}</span>
                 </div>
                 <span className={`font-mono ${
                   day.completion 
-                    ? day.completion.completed ? 'text-green-600' : 'text-orange-600'
-                    : 'text-gray-400'
+                    ? day.completion.completed ? 'text-success' : 'text-orange-600'
+                    : 'text-muted-foreground'
                 }`}>
                   {day.completion 
                     ? day.completion.completed ? formatTime(day.completion.time) : 'Incomplete'
@@ -207,7 +249,7 @@ export default function ProfilePage() {
                 onClick={() => setWeekOffset(weekOffset - 1)}
                 disabled={!canGoBackWeekly}
                 className={`p-2 rounded-lg transition-colors ${
-                  canGoBackWeekly ? 'bg-gray-200 hover:bg-gray-300' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  canGoBackWeekly ? 'bg-secondary hover:bg-secondary/80' : 'bg-muted text-muted-foreground cursor-not-allowed'
                 }`}
                 title="Previous Week"
               >
@@ -215,12 +257,12 @@ export default function ProfilePage() {
                   <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               </button>
-              <span className="font-medium text-gray-700 text-sm">{formatWeekRange()}</span>
+              <span className="font-medium text-foreground text-sm">{formatWeekRange()}</span>
               <button
                 onClick={() => setWeekOffset(weekOffset + 1)}
                 disabled={!canGoForward}
                 className={`p-2 rounded-lg transition-colors ${
-                  canGoForward ? 'bg-gray-200 hover:bg-gray-300' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  canGoForward ? 'bg-secondary hover:bg-secondary/80' : 'bg-muted text-muted-foreground cursor-not-allowed'
                 }`}
                 title="Next Week"
               >
@@ -232,28 +274,28 @@ export default function ProfilePage() {
         </div>
 
         <div className="gap-4 grid grid-cols-2 md:grid-cols-5">
-          <div className="flex flex-col justify-between bg-white shadow p-6 rounded-lg">
-            <div className="mb-1 text-gray-600 text-sm">Total Completions</div>
-            <div className="font-bold text-blue-600 text-3xl">{stats.totalCompletions}</div>
+          <div className="flex flex-col justify-between bg-card shadow p-6 rounded-lg">
+            <div className="mb-1 text-muted-foreground text-sm">Total Completions</div>
+            <div className="font-bold text-primary text-3xl">{stats.totalCompletions}</div>
           </div>
-          <div className="flex flex-col justify-between bg-white shadow p-6 rounded-lg">
-            <div className="mb-1 text-gray-600 text-sm">Did Not Complete</div>
+          <div className="flex flex-col justify-between bg-card shadow p-6 rounded-lg">
+            <div className="mb-1 text-muted-foreground text-sm">Did Not Complete</div>
             <div className="font-bold text-orange-600 text-3xl">{stats.didNotCompletes}</div>
           </div>
-          <div className="flex flex-col justify-between bg-white shadow p-6 rounded-lg">
-            <div className="mb-1 text-gray-600 text-sm">Best Time</div>
-            <div className="font-bold text-green-600 text-3xl">
+          <div className="flex flex-col justify-between bg-card shadow p-6 rounded-lg">
+            <div className="mb-1 text-muted-foreground text-sm">Best Time</div>
+            <div className="font-bold text-success text-3xl">
               {stats.bestTime ? formatTime(stats.bestTime) : '-'}
             </div>
           </div>
-          <div className="flex flex-col justify-between bg-white shadow p-6 rounded-lg">
-            <div className="mb-1 text-gray-600 text-sm">Average Time</div>
-            <div className="font-bold text-purple-600 text-3xl">
+          <div className="flex flex-col justify-between bg-card shadow p-6 rounded-lg">
+            <div className="mb-1 text-muted-foreground text-sm">Average Time</div>
+            <div className="font-bold text-3xl text-accent-foreground">
               {stats.averageTime ? formatTime(stats.averageTime) : '-'}
             </div>
           </div>
-          <div className="flex flex-col justify-between bg-white shadow p-6 rounded-lg">
-            <div className="mb-1 text-gray-600 text-sm">Days with Best Time</div>
+          <div className="flex flex-col justify-between bg-card shadow p-6 rounded-lg">
+            <div className="mb-1 text-muted-foreground text-sm">Days with Best Time</div>
             <div className="font-bold text-yellow-600 text-3xl">
               {stats.daysWithBestTime ?? 0}
             </div>
@@ -263,8 +305,8 @@ export default function ProfilePage() {
  
 
         {isAdmin && (
-          <div className="bg-white shadow p-6 rounded-lg">
-            <h2 className="mb-4 font-bold text-xl">Admin Controls</h2>
+          <div className="bg-card shadow p-6 rounded-lg">
+            <h2 className="mb-4 font-bold text-foreground text-xl">Admin Controls</h2>
             <button
               onClick={async () => {
                 const code = await getTodayInviteCode();
@@ -273,7 +315,7 @@ export default function ProfilePage() {
                 setCodeExpiry(expiryTime.toLocaleTimeString());
                 setShowCode(true);
               }}
-              className="bg-blue-600 hover:bg-blue-700 shadow-md px-6 py-3 rounded-lg w-full font-semibold text-white transition-colors"
+              className="bg-primary hover:bg-primary/90 shadow-md px-6 py-3 rounded-lg w-full font-semibold text-primary-foreground transition-colors"
             >
               Generate Invite Code
             </button>
@@ -282,20 +324,20 @@ export default function ProfilePage() {
 
         {showCode && (
           <div className="z-50 fixed inset-0 flex justify-center items-center bg-black bg-opacity-60 p-4">
-            <div className="bg-white shadow-2xl p-8 rounded-2xl w-full max-w-md">
+            <div className="bg-card shadow-2xl p-8 rounded-2xl w-full max-w-md">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="font-bold text-gray-900 text-3xl">Invite Code</h2>
+                <h2 className="font-bold text-foreground text-3xl">Invite Code</h2>
                 <button
                   onClick={() => setShowCode(false)}
-                  className="font-light text-gray-400 hover:text-gray-700 text-3xl"
+                  className="font-light text-muted-foreground hover:text-foreground text-3xl"
                 >
                   ×
                 </button>
               </div>
               
-              <div className="bg-blue-50 p-6 border-2 border-blue-300 rounded-lg">
-                <div className="mb-3 font-medium text-gray-700 text-sm">Share this code:</div>
-                <div className="mb-4 font-mono font-bold text-blue-600 text-4xl text-center">{inviteCode}</div>
+              <div className="bg-primary/10 p-6 border-2 border-primary rounded-lg">
+                <div className="mb-3 font-medium text-foreground text-sm">Share this code:</div>
+                <div className="mb-4 font-mono font-bold text-primary text-4xl text-center">{inviteCode}</div>
                 <div className="mb-4 text-orange-600 text-sm text-center">
                   ⏱️ Expires at {codeExpiry}
                 </div>
@@ -304,7 +346,7 @@ export default function ProfilePage() {
                     navigator.clipboard.writeText(inviteCode);
                     alert('Code copied to clipboard!');
                   }}
-                  className="bg-blue-600 hover:bg-blue-700 shadow-md px-6 py-3 rounded-lg w-full font-semibold text-white transition-colors"
+                  className="bg-primary hover:bg-primary/90 shadow-md px-6 py-3 rounded-lg w-full font-semibold text-primary-foreground transition-colors"
                 >
                   Copy Code
                 </button>
@@ -313,10 +355,10 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <div className="bg-white shadow p-6 rounded-lg">
+        <div className="bg-card shadow p-6 rounded-lg">
           <button
             onClick={() => logout()}
-            className="bg-red-600 hover:bg-red-700 shadow-md px-6 py-3 rounded-lg w-full font-semibold text-white transition-colors"
+            className="bg-destructive hover:bg-destructive/90 shadow-md px-6 py-3 rounded-lg w-full font-semibold text-destructive-foreground transition-colors"
           >
             Sign Out
           </button>

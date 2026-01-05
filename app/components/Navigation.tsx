@@ -19,26 +19,26 @@ export default function Navigation() {
   
   return (
     
-    <nav className="flex justify-between items-center bg-white shadow-sm px-4 py-3 border-b">
+    <nav className="flex justify-between items-center bg-linear-to-r from-card to-muted shadow-sm px-4 py-3 border-border border-b">
         <div className="flex items-center gap-4">
           <button 
             onClick={() => router.push('/')}
-            className="hover:scale-110 transition-transform"
+            className="bg-muted hover:bg-muted/90 shadow-md rounded-lg hover:scale-110 transition-all"
             title="Set Game"
           >
-            <svg width="32" height="44" viewBox="0 0 60 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="56" height="76" rx="6" fill="white" stroke="#3B82F6" strokeWidth="3"/>
-              <ellipse cx="30" cy="25" rx="15" ry="8" fill="#EF4444" stroke="#EF4444" strokeWidth="2"/>
-              <ellipse cx="30" cy="40" rx="15" ry="8" fill="#10B981" stroke="#10B981" strokeWidth="2"/>
-              <ellipse cx="30" cy="55" rx="15" ry="8" fill="#8B5CF6" stroke="#8B5CF6" strokeWidth="2"/>
+            <svg width="36" height="36" viewBox="0 0 60 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="2" width="56" height="76" rx="6"  strokeWidth="3"/>
+              <ellipse cx="30" cy="25" rx="15" ry="8" className="fill-set-red stroke-set-red" strokeWidth="2"/>
+              <ellipse cx="30" cy="40" rx="15" ry="8" className="fill-set-green stroke-set-green" strokeWidth="2"/>
+              <ellipse cx="30" cy="55" rx="15" ry="8" className="fill-set-purple stroke-set-purple" strokeWidth="2"/>
             </svg>
           </button>
           {pageTitle && (
-            <h1 className="font-bold text-gray-700 text-xl">{pageTitle}</h1>
+            <h1 className="font-bold text-foreground text-xl">{pageTitle}</h1>
           )}
           {isHomePage && !todayCompleted && (
             <div className="flex items-center gap-3 text-sm">
-              <div className="font-semibold text-gray-700">
+              <div className="font-semibold text-foreground">
                 {foundSets} / 6
               </div>
               <Timer 
@@ -51,7 +51,7 @@ export default function Navigation() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => router.push('/unranked')}
-            className="bg-blue-600 hover:bg-blue-700 shadow-md p-2 rounded-lg text-white transition-colors"
+            className="bg-primary hover:bg-primary/90 shadow-md p-2 rounded-lg text-primary-foreground hover:scale-110 transition-all"
             title="Unranked"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -60,7 +60,7 @@ export default function Navigation() {
           </button>
           <button
             onClick={() => router.push('/profile')}
-            className="bg-blue-600 hover:bg-blue-700 shadow-md p-2 rounded-lg text-white transition-colors"
+            className="bg-primary hover:bg-primary/90 shadow-lg p-2 rounded-lg text-primary-foreground hover:scale-110 transition-all"
             title="My Profile"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -69,7 +69,7 @@ export default function Navigation() {
           </button>
           <button
             onClick={() => router.push('/rankings')}
-            className="bg-blue-600 hover:bg-blue-700 shadow-md p-2 rounded-lg text-white transition-colors"
+            className="bg-primary hover:bg-primary/90 shadow-lg p-2 rounded-lg text-primary-foreground hover:scale-110 transition-all"
             title="Daily Rankings"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 512 512" fill="currentColor">
@@ -80,8 +80,8 @@ export default function Navigation() {
             <button
               onClick={() => setShowingSets(!showingSets)}
               className={`${
-                showingSets ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-600 hover:bg-gray-700'
-              } shadow-md p-2 rounded-lg text-white transition-colors`}
+                showingSets ? 'bg-accent hover:bg-accent/90' : 'bg-muted hover:bg-muted/90'
+              } shadow-md p-2 rounded-lg text-accent-foreground transition-all hover:scale-110`}
               title={showingSets ? 'Hide Sets' : 'Show All Sets'}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

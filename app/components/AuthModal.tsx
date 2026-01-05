@@ -80,30 +80,30 @@ export default function AuthModal({ onClose }: AuthModalProps) {
 
   return (
     <div className="z-50 fixed inset-0 flex justify-center items-center bg-black bg-opacity-60 p-4">
-      <div className="bg-white shadow-2xl p-8 rounded-2xl w-full max-w-md">
+      <div className="bg-card shadow-2xl p-8 rounded-2xl w-full max-w-md">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="font-bold text-gray-900 text-3xl">
+          <h2 className="font-bold text-foreground text-3xl">
             {isSignUp ? 'Sign Up' : 'Sign In'}
           </h2>
           <button
             onClick={onClose}
-            className="font-light text-gray-400 hover:text-gray-700 text-3xl"
+            className="font-light text-muted-foreground hover:text-foreground text-3xl"
           >
             ×
           </button>
         </div>
 
         {success && (
-          <div className="bg-blue-50 mb-6 p-6 border-2 border-blue-300 rounded-lg">
+          <div className="bg-primary/10 mb-6 p-6 border-2 border-primary rounded-lg">
             <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 bg-blue-100 mt-0.5 p-2 rounded-full">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex-shrink-0 bg-primary/20 mt-0.5 p-2 rounded-full">
+                <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-blue-900 text-lg">Account Created!</h3>
-                <p className="mt-1 text-blue-800 text-sm">
+                <h3 className="font-semibold text-primary-foreground text-lg">Account Created!</h3>
+                <p className="mt-1 text-primary-foreground text-sm">
                   Your account request has been submitted. An administrator will review and approve your account shortly. You'll be able to sign in once approved.
                 </p>
               </div>
@@ -112,7 +112,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
         )}
 
         {error && (
-          <div className="bg-red-100 mb-4 p-3 border border-red-300 rounded-lg text-red-700 text-sm">
+          <div className="bg-destructive/10 mb-4 p-3 border border-destructive rounded-lg text-destructive-foreground text-sm">
             {error}
           </div>
         )}
@@ -121,7 +121,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
 
           {isSignUp && (
             <div>
-              <label className="block mb-1 font-medium text-gray-700 text-sm">
+              <label className="block mb-1 font-medium text-foreground text-sm">
                 Invite Code (required for email or google sign ups)
               </label>
               <input
@@ -129,34 +129,34 @@ export default function AuthModal({ onClose }: AuthModalProps) {
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
                 placeholder="ALPHA-123"
-                className="px-4 py-2 border border-gray-300 focus:border-transparent rounded-lg focus:ring-2 focus:ring-blue-500 w-full font-mono"
+                className="bg-background px-4 py-2 border border-input focus:border-transparent rounded-lg focus:ring-2 focus:ring-ring w-full font-mono text-foreground"
                 required
               />
             </div>
           )}
-          <hr className="my-4 border-gray-300"/>
+          <hr className="my-4 border-border"/>
           <div>
-            <label className="block mb-1 font-medium text-gray-700 text-sm">
+            <label className="block mb-1 font-medium text-foreground text-sm">
               Email
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="px-4 py-2 border border-gray-300 focus:border-transparent rounded-lg focus:ring-2 focus:ring-blue-500 w-full"
+              className="bg-background px-4 py-2 border border-input focus:border-transparent rounded-lg focus:ring-2 focus:ring-ring w-full text-foreground"
               required
             />
           </div>
 
           <div>
-            <label className="block mb-1 font-medium text-gray-700 text-sm">
+            <label className="block mb-1 font-medium text-foreground text-sm">
               Password
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="px-4 py-2 border border-gray-300 focus:border-transparent rounded-lg focus:ring-2 focus:ring-blue-500 w-full"
+              className="bg-background px-4 py-2 border border-input focus:border-transparent rounded-lg focus:ring-2 focus:ring-ring w-full text-foreground"
               required
               minLength={6}
             />
@@ -165,7 +165,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 py-3 rounded-lg w-full font-bold text-white transition-colors"
+            className="bg-primary hover:bg-primary/90 disabled:opacity-50 py-3 rounded-lg w-full font-bold text-primary-foreground transition-colors"
           >
             {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
           </button>
@@ -178,7 +178,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
               setError('');
               setSuccess('');
             }}
-            className="font-medium text-blue-600 hover:text-blue-700 text-sm"
+            className="font-medium text-primary hover:text-primary/90 text-sm"
           >
             {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
           </button>
@@ -186,17 +186,17 @@ export default function AuthModal({ onClose }: AuthModalProps) {
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="border-gray-300 border-t w-full"></div>
+            <div className="border-border border-t w-full"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="bg-white px-2 text-gray-500">Or</span>
+            <span className="bg-card px-2 text-muted-foreground">Or</span>
           </div>
         </div>
 
         <button
           onClick={handleGoogleAuth}
           disabled={loading}
-          className="flex justify-center items-center gap-2 bg-white hover:bg-gray-50 py-3 border border-gray-300 rounded-lg w-full font-semibold text-gray-700 transition-colors"
+          className="flex justify-center items-center gap-2 bg-card hover:bg-secondary py-3 border border-border rounded-lg w-full font-semibold text-foreground transition-colors"
         >
           <span>{isSignUp ? 'Sign up with Google' : 'Sign in with Google'}</span>
         </button>

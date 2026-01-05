@@ -1,6 +1,66 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@source "../../app/**/*.{js,ts,jsx,tsx,mdx}";
+@source "../../pages/**/*.{js,ts,jsx,tsx,mdx}";
+@source "../../components/**/*.{js,ts,jsx,tsx,mdx}";
+
+:root {
+  color-scheme: light dark;
+}
+
+@theme {
+  --color-background: light-dark(hsl(0 0% 100%), hsl(222.2 84% 4.9%));
+  --color-foreground: light-dark(hsl(222.2 84% 4.9%), hsl(210 40% 98%));
+  
+  --color-card: light-dark(hsl(0 0% 100%), hsl(222.2 50% 10%));
+  --color-card-foreground: light-dark(hsl(222.2 84% 4.9%), hsl(210 40% 98%));
+  
+  --color-popover: light-dark(hsl(0 0% 100%), hsl(222.2 84% 4.9%));
+  --color-popover-foreground: light-dark(hsl(222.2 84% 4.9%), hsl(210 40% 98%));
+  
+  --color-primary: light-dark(hsl(221.2 83.2% 53.3%), hsl(217.2 91.2% 59.8%));
+  --color-primary-foreground: light-dark(hsl(210 40% 98%), hsl(222.2 47.4% 11.2%));
+  
+  --color-secondary: light-dark(hsl(210 40% 96.1%), hsl(217.2 32.6% 17.5%));
+  --color-secondary-foreground: light-dark(hsl(222.2 47.4% 11.2%), hsl(210 40% 98%));
+
+  --color-tertiary: light-dark(hsl(210 40% 98%), hsl(217.2 32.6% 14%));
+  --color-tertiary-foreground: light-dark(hsl(222.2 47.4% 11.2%), hsl(210 40% 98%));
+  
+  --color-muted: light-dark(hsl(210 40% 96.1%), hsl(217.2 32.6% 17.5%));
+  --color-muted-foreground: light-dark(hsl(215.4 16.3% 46.9%), hsl(215 20.2% 65.1%));
+  
+  --color-accent: light-dark(hsl(210 40% 96.1%), hsl(217.2 32.6% 17.5%));
+  --color-accent-foreground: light-dark(hsl(222.2 47.4% 11.2%), hsl(210 40% 98%));
+  
+  --color-destructive: light-dark(hsl(0 84.2% 60.2%), hsl(0 62.8% 30.6%));
+  --color-destructive-foreground: light-dark(hsl(210 40% 98%), hsl(210 40% 98%));
+  
+  --color-border: light-dark(hsl(214.3 31.8% 91.4%), hsl(217.2 32.6% 17.5%));
+  --color-input: light-dark(hsl(214.3 31.8% 91.4%), hsl(217.2 32.6% 17.5%));
+  --color-ring: light-dark(hsl(221.2 83.2% 53.3%), hsl(224.3 76.3% 48%));
+  
+  --color-success: light-dark(hsl(142 76% 36%), hsl(142 71% 45%));
+  --color-success-foreground: light-dark(hsl(0 0% 100%), hsl(0 0% 100%));
+  
+  --color-gradient-start: light-dark(hsl(217 91% 60%), hsl(217 91% 45%));
+  --color-gradient-end: light-dark(hsl(271 76% 53%), hsl(271 76% 40%));
+  
+  --color-set-red: 0 91% 59%;
+  --color-set-green: 142 76% 36%;
+  --color-set-purple: 271 76% 53%;
+  
+  --shadow-sm: 0 2px 4px 0 rgb(0 0 0 / 0.15);
+  --shadow: 0 3px 6px 0 rgb(0 0 0 / 0.2), 0 2px 4px -1px rgb(0 0 0 / 0.15);
+  --shadow-md: 0 6px 10px -1px rgb(0 0 0 / 0.25), 0 4px 6px -2px rgb(0 0 0 / 0.2);
+  --shadow-lg: 0 12px 20px -3px rgb(0 0 0 / 0.3), 0 6px 10px -4px rgb(0 0 0 / 0.25);
+  --shadow-xl: 0 24px 30px -5px rgb(0 0 0 / 0.35), 0 10px 15px -6px rgb(0 0 0 / 0.3);
+  --shadow-2xl: 0 30px 60px -12px rgb(0 0 0 / 0.4);
+  
+  --radius-lg: 0.5rem;
+  --radius-md: calc(0.5rem - 2px);
+  --radius-sm: calc(0.5rem - 4px);
+}
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -8,4 +68,38 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+.fill-set-red {
+  fill: hsl(var(--color-set-red));
+}
+
+.fill-set-green {
+  fill: hsl(var(--color-set-green));
+}
+
+.fill-set-purple {
+  fill: hsl(var(--color-set-purple));
+}
+
+.stroke-set-red {
+  stroke: hsl(var(--color-set-red));
+}
+
+.stroke-set-green {
+  stroke: hsl(var(--color-set-green));
+}
+
+.stroke-set-purple {
+  stroke: hsl(var(--color-set-purple));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-set-red: 0 91% 70%;
+    --color-set-green: 142 76% 55%;
+    --color-set-purple: 271 76% 65%;
+  }
 }
