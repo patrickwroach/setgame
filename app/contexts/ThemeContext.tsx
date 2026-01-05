@@ -1,6 +1,8 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { getUserDataByUid, updateThemePreference } from "../lib/users";
+import { useAuth } from "./AuthContext";
 
 type Theme = "light" | "dark" | "system";
 
@@ -13,15 +15,53 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("system");
+  const { user } = useAuth();
+  const [theme, setThemeState] = useState<Theme>("system");
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
+  const [isInitialized, setIsInitialized] = useState(false);
 
+  // Load theme preference from database or localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem("theme") as Theme | null;
-    if (stored) {
-      setTheme(stored);
+    async function loadTheme() {
+      if (user?.uid) {
+        // User is logged in, try to load from database
+        try {
+          const userData = await getUserDataByUid(user.uid);
+          if (userData?.themePreference) {
+            setThemeState(userData.themePreference);
+            setIsInitialized(true);
+            return;
+          }
+        } catch (error) {
+          console.error('Error loading theme from database:', error);
+        }
+      }
+      
+      // Fallback to localStorage
+      const stored = localStorage.getItem("theme") as Theme | null;
+      if (stored) {
+        setThemeState(stored);
+      }
+      setIsInitialized(true);
     }
-  }, []);
+    
+    loadTheme();
+  }, [user?.uid]);
+
+  // Custom setTheme that syncs to both localStorage and database
+  const setTheme = async (newTheme: Theme) => {
+    setThemeState(newTheme);
+    localStorage.setItem("theme", newTheme);
+    
+    // Save to database if user is logged in
+    if (user?.uid) {
+      try {
+        await updateThemePreference(user.uid, newTheme);
+      } catch (error) {
+        console.error('Error saving theme to database:', error);
+      }
+    }
+  };
 
   useEffect(() => {
     const root = window.document.documentElement;

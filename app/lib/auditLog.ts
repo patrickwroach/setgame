@@ -9,6 +9,7 @@ export type AuditEventType =
   | 'user_approved'
   | 'user_denied'
   | 'displayname_changed'
+  | 'theme_changed'
   | 'puzzle_completed'
   | 'puzzle_incomplete'
   | 'unauthorized_access_attempt'

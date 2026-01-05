@@ -118,6 +118,26 @@ export async function getUserDataByUid(uid: string): Promise<any> {
 }
 
 /**
+ * Update user theme preference
+ */
+export async function updateThemePreference(uid: string, theme: 'light' | 'dark' | 'system'): Promise<void> {
+  try {
+    const docRef = doc(db, 'users', uid);
+    await setDoc(docRef, {
+      themePreference: theme,
+    }, { merge: true });
+    
+    await logAuditEvent('theme_changed', uid, undefined, { 
+      newTheme: theme 
+    }, 'info');
+  } catch (error) {
+    const isDev = process.env.NODE_ENV === 'development';
+    if (isDev) console.error('Error updating theme preference:', error);
+    throw error;
+  }
+}
+
+/**
  * Update user display name
  * Now uses UID to look up the user document
  */

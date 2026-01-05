@@ -18,24 +18,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-        <ThemeProvider>
-          <body className="bg-linear-to-br from-tertiary to-secondary min-h-screen">
-        
-              <AuthProvider>
-                <GameProvider>
-                  <AuthGuard>
-                    <div className="flex flex-col min-h-screen">
-                      <Navigation />
-                      <main>
-                        {children}
-                      </main>
-                    </div>
-                  </AuthGuard>
-                </GameProvider>
-              </AuthProvider>
-        
-          </body>
-        </ThemeProvider>
+      <body className="bg-linear-to-br from-tertiary to-secondary min-h-screen">
+        <AuthProvider>
+          <ThemeProvider>
+            <GameProvider>
+              <AuthGuard>
+                <div className="flex flex-col min-h-screen">
+                  <Navigation />
+                  <main>
+                    {children}
+                  </main>
+                </div>
+              </AuthGuard>
+            </GameProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </body>
     </html>
   );
 }
