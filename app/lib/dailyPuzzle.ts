@@ -27,7 +27,7 @@ export function getDateSeed(dateString: string): number {
   return parseInt(parts[0]) * 10000 + parseInt(parts[1]) * 100 + parseInt(parts[2]);
 }
 
-export function generateDailyPuzzle(dateString: string, targetSets: number = 4, boardSize: number = 12): Card[] {
+export function generateDailyPuzzle(dateString: string, targetSets: number = 6, boardSize: number = 12): Card[] {
   const allCards = generateAllCards();
   const seed = getDateSeed(dateString);
   const rng = new SeededRandom(seed);

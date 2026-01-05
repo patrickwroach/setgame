@@ -4,7 +4,7 @@ A daily puzzle game based on the card game Set. Built with Next.js, React, and F
 
 ## Features
 
-- 🎴 Daily puzzle with exactly 4 valid sets (same for everyone each day)
+- 🎴 Daily puzzle with exactly 6 valid sets (same for everyone each day)
 - 🎯 Interactive card selection with visual feedback
 - ⏱️ Timer tracking to tenths of a second
 - 🔐 Required authentication (Google or Email/Password)
@@ -102,7 +102,7 @@ firebase deploy
 
 1. **Sign in** - Authentication required to play
 2. **Select 3 cards** - Click cards to select them
-3. **Find all 4 sets** - Timer tracks your completion time
+3. **Find all 6 sets** - Timer tracks your completion time
 4. **Daily puzzle** - Same puzzle for everyone each day (Eastern Time)
 5. **Show All Sets** - If you click this, puzzle is marked as incomplete
 6. **Completion tracking** - Your times are saved per day

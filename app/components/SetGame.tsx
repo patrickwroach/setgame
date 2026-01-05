@@ -14,7 +14,7 @@ interface SetGameProps {
   onTimerChange: (startTime: number, isRunning: boolean) => void;
   onCompletionChange: (completed: boolean) => void;
 }
-
+const setsToFind = 6;
 export default function SetGame({ onShowSetsClick, showingSets: externalShowingSets, onFoundSetsChange, onTimerChange, onCompletionChange }: SetGameProps) {
   const { user } = useAuth();
   const [board, setBoard] = useState<Card[]>([]);
@@ -46,7 +46,7 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
   const loadDailyPuzzle = async () => {
     const dateString = getTodayDateString();
     setCurrentDate(dateString);
-    const dailyBoard = generateDailyPuzzle(dateString, 4, 12);
+    const dailyBoard = generateDailyPuzzle(dateString, setsToFind, 12);
     setBoard(dailyBoard);
     setSelectedCards([]);
     setFoundSets(new Set());
@@ -154,7 +154,7 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
           setMessage('⚠️ You already found this set!');
           setTimeout(() => {
             setSelectedCards([]);
-            setMessage(`${foundSets.size} / 4 sets found`);
+            setMessage(`${foundSets.size} / ${setsToFind} found`);
           }, 1500);
         } else {
           const newFoundSets = new Set(foundSets);
@@ -163,7 +163,7 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
           onFoundSetsChange(newFoundSets.size);
           
           // Check if puzzle is completed
-          if (newFoundSets.size === 4) {
+          if (newFoundSets.size === setsToFind) {
             const timeElapsed = (Date.now() - timerStartTime) / 1000;
             setCompletionTime(timeElapsed);
             setIsTimerRunning(false);
@@ -176,12 +176,12 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
               onCompletionChange(true);
             }
             
-            setMessage(`🎉 You found all 4 sets in ${formatTime(timeElapsed)}!`);
+            setMessage(`🎉 You found all ${setsToFind} sets in ${formatTime(timeElapsed)}!`);
           } else {
             setMessage('✅ Valid Set!');
             setTimeout(() => {
               setSelectedCards([]);
-              setMessage(`${4 - newFoundSets.size} sets remaining`);
+              setMessage(`${setsToFind - newFoundSets.size} sets remaining`);
             }, 1000);
           }
           
@@ -225,7 +225,7 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
         <div className="flex flex-col flex-1 justify-center items-center">
           <div className="mb-8 text-center">
             <h2 className="mb-4 font-bold text-gray-800 text-3xl">Daily SET Challenge</h2>
-            <p className="mb-2 text-gray-600">Find all 4 valid sets on the board</p>
+            <p className="mb-2 text-gray-600">{`Find all ${setsToFind} valid sets on the board`}</p>
             <p className="text-gray-500 text-sm">Your time starts when you click the button below</p>
           </div>
           <button
@@ -257,7 +257,7 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
           <div className="mb-2 font-semibold text-purple-800 text-sm">All Sets on Board:</div>
           <div className="space-y-1">
             {allSets.map((set, idx) => {
-              const labels = ['A', 'B', 'C', 'D'];
+              const labels = ['A', 'B', 'C', 'D','E', 'F'];
               return (
                 <div key={idx} className="flex items-center gap-2 text-purple-700 text-xs">
                   <span className="flex justify-center items-center bg-purple-600 rounded-full w-5 h-5 font-bold text-white text-xs">

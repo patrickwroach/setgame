@@ -38,7 +38,7 @@ export default function Navigation() {
           {isHomePage && !todayCompleted && (
             <div className="flex items-center gap-3 text-sm">
               <div className="font-semibold text-gray-700">
-                {foundSets} / 4
+                {foundSets} / 6
               </div>
               <Timer 
                 isRunning={isTimerRunning} 

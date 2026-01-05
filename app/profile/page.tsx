@@ -20,7 +20,7 @@ export default function ProfilePage() {
   const [weekOffset, setWeekOffset] = useState(0);
   
   // Launch date: December 11, 2024
-  const LAUNCH_DATE = new Date('2024-12-11T00:00:00');
+  const LAUNCH_DATE = new Date('2026-5-11T00:00:00');
 
   useEffect(() => {
     if (loading) return;
