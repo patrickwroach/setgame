@@ -79,7 +79,6 @@ export function generateBoardWithSets(targetSets: number, boardSize: number = 12
   }
 
   // Fallback: return a board even if it doesn't have exactly targetSets
-  console.warn(`Could not generate board with exactly ${targetSets} sets after ${maxAttempts} attempts`);
   const shuffled = [...allCards].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, boardSize);
 }

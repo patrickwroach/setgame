@@ -3,8 +3,8 @@ import "./globals.css";
 import { AuthProvider } from "./contexts/AuthContext";
 import { GameProvider } from "./contexts/GameContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import AuthGuard from "./components/AuthGuard";
-import Navigation from "./components/Navigation";
+import AuthGuard from "@components/AuthGuard";
+import Navigation from "@components/Navigation";
 
 export const metadata: Metadata = {
   title: "Set Set Set",

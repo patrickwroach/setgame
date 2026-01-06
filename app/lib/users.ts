@@ -86,33 +86,16 @@ export async function getUserData(email: string): Promise<any> {
  * Now uses direct document lookup since users are keyed by UID
  */
 export async function getUserDataByUid(uid: string): Promise<any> {
-  const isDev = process.env.NODE_ENV === 'development';
-  
   try {
-    if (isDev) console.log(`getUserDataByUid called for UID: ${uid}`);
-    
     const docRef = doc(db, 'users', uid);
     const docSnap = await getDoc(docRef);
-    
-    if (isDev) {
-      console.log(`Document exists: ${docSnap.exists()}`);
-      if (docSnap.exists()) {
-        console.log('User data:', docSnap.data());
-      } else {
-        console.log('No user found with UID:', uid);
-      }
-    }
     
     if (docSnap.exists()) {
       return docSnap.data();
     }
     return null;
   } catch (error: any) {
-    if (isDev) {
-      console.error('Error getting user data by UID:', error);
-      console.error('Error code:', error?.code);
-      console.error('Error message:', error?.message);
-    }
+    console.error('Error getting user data by UID:', error);
     return null;
   }
 }

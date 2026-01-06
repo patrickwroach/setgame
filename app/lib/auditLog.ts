@@ -42,15 +42,6 @@ export async function logAuditEvent(
   severity: 'info' | 'warning' | 'error' = 'info'
 ): Promise<void> {
   try {
-    // Always log to console in development for debugging
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[AUDIT ${severity.toUpperCase()}]`, eventType, {
-        userId,
-        userEmail,
-        details,
-      });
-    }
-
     // Client-side writes to audit_logs are blocked by Firestore rules
     // To enable production audit logging:
     // 1. Create a Cloud Function with Admin SDK

@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Card, isValidSet, findAllSets, generateBoardWithSets } from '../lib/setLogic';
 import { useAuth } from '../contexts/AuthContext';
-import SetCard from '../components/SetCard';
+import SetCard from '@components/SetCard';
+import MessageBanner from '@components/ui/MessageBanner';
+import Button from '@components/ui/Button';
 
 const setsToFind = 6;
 const labels = ['A', 'B', 'C', 'D','E', 'F'];
@@ -111,7 +113,7 @@ export default function UnrankedPage() {
   };
 
   return (
-    <div className="flex flex-col flex-1 px-4 py-4 overflow-hidden">
+    <div className="flex flex-col flex-1 px-4 py-4 overflow-hidden page-fade-in">
       {!gameStarted && (
         <div className="flex flex-col flex-1 justify-center items-center">
           <div className="mb-8 text-center">
@@ -119,54 +121,56 @@ export default function UnrankedPage() {
             <p className="mb-2 text-muted-foreground">Play unlimited unranked games</p>
             <p className="text-muted-foreground text-sm">No time tracking, just practice!</p>
           </div>
-          <button
+          <Button
             onClick={generateNewPuzzle}
-            className="bg-primary hover:bg-primary/90 shadow-lg px-8 py-4 rounded-lg font-bold text-primary-foreground text-xl transition-colors"
+            variant="primary"
+            size="lg"
+            className="px-8 py-4 text-xl"
           >
             Generate New Puzzle
-          </button>
+          </Button>
         </div>
       )}
 
       {gameStarted && (
         <>
-          <div className="flex flex-shrink-0 justify-between items-center mb-3">
+          <div className="flex justify-between items-center mb-3 shrink-0">
             <div className="flex items-center gap-3">
               <div className="font-semibold text-foreground">
                 {foundSets.size} / {setsToFind} sets found
               </div>
             </div>
             <div className="flex gap-2">
-              <button
+              <Button
                 onClick={() => setShowingSets(!showingSets)}
-                className={`${
-                  showingSets ? 'bg-accent hover:bg-accent/90' : 'bg-muted hover:bg-muted/90'
-                } shadow-md px-3 py-2 rounded-lg text-accent-foreground text-sm transition-colors`}
+                variant={showingSets ? 'accent' : 'muted'}
+                size="sm"
               >
                 {showingSets ? 'Hide Sets' : 'Show All Sets'}
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={generateNewPuzzle}
-                className="bg-primary hover:bg-primary/90 shadow-md px-3 py-2 rounded-lg text-primary-foreground text-sm transition-colors"
+                variant="primary"
+                size="sm"
               >
                 New Puzzle
-              </button>
+              </Button>
             </div>
           </div>
 
           {(message.includes('✅') || message.includes('🎉') || message.includes('⚠️')) && (
-            <div className={`text-center text-lg font-bold mb-3 p-3 rounded-lg flex-shrink-0 ${
-              message.includes('✅') ? 'bg-success text-success-foreground' :
-              message.includes('🎉') ? 'bg-linear-to-r from-gradient-start to-gradient-end text-white' :
-              message.includes('⚠️') ? 'bg-destructive/20 text-destructive-foreground' :
-              'bg-muted text-muted-foreground'
-            }`}>
-              {message}
-            </div>
+            <MessageBanner
+              message={message}
+              type={
+                message.includes('✅') ? 'success' :
+                message.includes('🎉') ? 'gradient' :
+                message.includes('⚠️') ? 'warning' : 'info'
+              }
+            />
           )}
 
           {showingSets && (
-            <div className="flex-shrink-0 bg-accent/20 mb-3 p-3 border border-accent rounded-lg">
+            <div className="bg-accent/20 mb-3 p-3 border border-accent rounded-lg shrink-0">
               <div className="mb-2 font-semibold text-sm text-accent-foreground">All Sets on Board:</div>
               <div className="space-y-1">
                 {allSets.map((set, idx) => (
@@ -182,9 +186,9 @@ export default function UnrankedPage() {
           )}
 
           <div className="flex flex-1 justify-center items-center p-2 min-h-0">
-            <div className="gap-2 sm:gap-3 grid grid-cols-3 md:grid-cols-4 grid-rows-4 md:grid-rows-3 w-full max-w-[1200px] h-full max-h-[calc(100vh-80px)] md:aspect-[960/494]">
+            <div className="gap-2 sm:gap-3 grid grid-cols-3 md:grid-cols-4 grid-rows-4 md:grid-rows-3 w-full max-w-[1200px] h-full max-h-[calc(100vh-80px)] md:aspect-960/494">
               {board.map((card, index) => (
-                <div key={index} className="w-full aspect-square md:aspect-[3/2]">
+                <div key={index} className="w-full aspect-square md:aspect-3/2">
                   <SetCard
                     card={card}
                     isSelected={selectedCards.includes(index)}

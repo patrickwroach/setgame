@@ -1,0 +1,11 @@
+.stat-card {
+  @apply flex flex-col justify-between bg-card shadow p-6 rounded-lg;
+}
+
+.stat-label {
+  @apply mb-1 text-muted-foreground text-sm;
+}
+
+.stat-value {
+  @apply font-bold text-3xl;
+}

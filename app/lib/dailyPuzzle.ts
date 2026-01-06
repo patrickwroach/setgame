@@ -54,7 +54,6 @@ export function generateDailyPuzzle(dateString: string, targetSets: number = 6, 
   }
 
   // Fallback: return a board even if it doesn't have exactly targetSets
-  console.warn(`Could not generate board with exactly ${targetSets} sets for ${dateString}`);
   const shuffled = [...allCards];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(rng.next() * (i + 1));

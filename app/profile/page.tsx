@@ -7,6 +7,13 @@ import { getUserStats, formatTime } from '../lib/stats';
 import { updateDisplayName, getUserDataByUid } from '../lib/users';
 import { getTodayInviteCode } from '../lib/inviteCode';
 import { getTodayDateString } from '../lib/dailyPuzzle';
+import { Card, CardTitle } from '@components/ui/Card';
+import StatCard from '@components/ui/StatCard';
+import Button from '@components/ui/Button';
+import Input from '@components/ui/Input';
+import NavigationArrows from '@components/ui/NavigationArrows';
+import Loading from '@components/ui/Loading';
+import { getWeekBounds, formatWeekRange, launchDate as LAUNCH_DATE } from '../lib/dateUtils';
 
 export default function ProfilePage() {
   const { user, loading, logout } = useAuth();
@@ -20,9 +27,6 @@ export default function ProfilePage() {
   const [showCode, setShowCode] = useState(false);
   const [codeExpiry, setCodeExpiry] = useState<string>('');
   const [weekOffset, setWeekOffset] = useState(0);
-  
-  // Launch date: December 11, 2024
-  const LAUNCH_DATE = new Date('2026-5-11T00:00:00');
 
   useEffect(() => {
     if (loading) return;
@@ -67,23 +71,9 @@ export default function ProfilePage() {
     }
   }
 
-  if (loading || loadingStats) return <div className="p-8">Loading...</div>;
+  if (loading || loadingStats) return <Loading />;
   if (!user || !stats) return null;
 
-  // Helper function to get week start (Sunday) and end (Saturday)
-  const getWeekBounds = (offset: number) => {
-    const today = new Date();
-    const currentDay = today.getDay(); // 0 = Sunday, 6 = Saturday
-    const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() - currentDay + (offset * 7));
-    weekStart.setHours(0, 0, 0, 0);
-    
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6);
-    weekEnd.setHours(23, 59, 59, 999);
-    
-    return { weekStart, weekEnd };
-  };
 
   const { weekStart, weekEnd } = getWeekBounds(weekOffset);
   
@@ -110,13 +100,6 @@ export default function ProfilePage() {
   const todayDateStr = getTodayDateString();
   const todayCompletion = stats.recentCompletions.find((c: any) => c.date === todayDateStr);
 
-  const formatWeekRange = () => {
-    const startStr = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const endStr = weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    return `${startStr} - ${endStr}`;
-  };
-// TODO:This doesn't work
-  const isCurrentWeek = weekOffset === 0;
   const canGoForward = weekOffset < 0;
   
   // Check if we can go back further (check if the PREVIOUS week would still be >= launch date)
@@ -125,9 +108,9 @@ export default function ProfilePage() {
 
   return (
 
-      <div className="space-y-6 mx-auto p-2 md:p-6 max-w-6xl">
-        <div className="bg-card shadow p-2 md:p-6 rounded-lg">
-          <h2 className="mb-4 font-bold text-foreground text-xl">Display Name</h2>
+      <div className="space-y-6 mx-auto p-2 md:p-6 max-w-6xl page-fade-in">
+        <Card className="p-2 md:p-6">
+          <CardTitle>Display Name</CardTitle>
           {editingName ? (
             <div>
               <div className="flex gap-2">
@@ -135,16 +118,16 @@ export default function ProfilePage() {
                   type="text"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  className="flex-1 bg-background px-3 py-2 border border-input rounded text-foreground"
+                  className="flex-1 input"
                   placeholder="Enter display name"
                   maxLength={50}
                 />
-                <button onClick={saveName} className="bg-primary hover:bg-primary/90 px-4 py-2 rounded text-primary-foreground">
+                <Button onClick={saveName} variant="primary" size="md">
                   Save
-                </button>
-                <button onClick={() => setEditingName(false)} className="bg-secondary hover:bg-secondary/80 px-4 py-2 rounded text-secondary-foreground">
+                </Button>
+                <Button onClick={() => setEditingName(false)} variant="secondary" size="md">
                   Cancel
-                </button>
+                </Button>
               </div>
               <p className="mt-1 text-muted-foreground text-xs">
                 {newName.length}/50 characters. Letters, numbers, spaces, hyphens, and underscores only.
@@ -158,10 +141,10 @@ export default function ProfilePage() {
               </button>
             </div>
           )}
-        </div>
+        </Card>
 
-        <div className="bg-card shadow p-2 md:p-6 rounded-lg">
-          <h2 className="mb-4 font-bold text-foreground text-xl">Theme</h2>
+        <Card className="p-2 md:p-6">
+          <CardTitle>Theme</CardTitle>
           <div className="space-y-3">
             <label className="flex items-center gap-3 cursor-pointer">
               <input
@@ -197,10 +180,9 @@ export default function ProfilePage() {
               <span className="text-foreground">Automatic (System)</span>
             </label>
           </div>
-        </div>
+        </Card>
 
-               {/* Today's Time Box */}
-        <div className="bg-linear-to-r from-gradient-start to-gradient-end shadow-lg p-6 rounded-lg">
+        <div className="gradient-box">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="mb-1 font-bold text-white text-xl">Today's Time</h2>
@@ -218,8 +200,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Weekly Completions */}
-        <div className="bg-card shadow p-6 rounded-lg">
+        <Card>
           <div className="flex justify-between items-center mb-4">
             <h2 className="font-bold text-foreground text-xl">Weekly Times</h2>
        
@@ -244,7 +225,7 @@ export default function ProfilePage() {
               </div>
             ))}
           </div>
-               <div className="flex justify-center items-center gap-2 mt-4">
+            {/*    <div className="flex justify-center items-center gap-2 mt-4">
               <button
                 onClick={() => setWeekOffset(weekOffset - 1)}
                 disabled={!canGoBackWeekly}
@@ -257,7 +238,7 @@ export default function ProfilePage() {
                   <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               </button>
-              <span className="font-medium text-foreground text-sm">{formatWeekRange()}</span>
+              <span className="font-medium text-foreground text-sm">{formatWeekRange(weekStart, weekEnd)}</span>
               <button
                 onClick={() => setWeekOffset(weekOffset + 1)}
                 disabled={!canGoForward}
@@ -270,44 +251,44 @@ export default function ProfilePage() {
                   <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                 </svg>
               </button>
-            </div>
-        </div>
+            </div> */}
+            <NavigationArrows onPrevious={() => setWeekOffset(weekOffset - 1)} onNext={() => setWeekOffset(weekOffset + 1)} canGoBack={canGoBackWeekly} canGoForward={canGoForward} label={formatWeekRange(weekStart, weekEnd)} />
+        </Card>
 
         <div className="gap-4 grid grid-cols-2 md:grid-cols-5">
-          <div className="flex flex-col justify-between bg-card shadow p-6 rounded-lg">
-            <div className="mb-1 text-muted-foreground text-sm">Total Completions</div>
-            <div className="font-bold text-primary text-3xl">{stats.totalCompletions}</div>
-          </div>
-          <div className="flex flex-col justify-between bg-card shadow p-6 rounded-lg">
-            <div className="mb-1 text-muted-foreground text-sm">Did Not Complete</div>
-            <div className="font-bold text-orange-600 text-3xl">{stats.didNotCompletes}</div>
-          </div>
-          <div className="flex flex-col justify-between bg-card shadow p-6 rounded-lg">
-            <div className="mb-1 text-muted-foreground text-sm">Best Time</div>
-            <div className="font-bold text-success text-3xl">
-              {stats.bestTime ? formatTime(stats.bestTime) : '-'}
-            </div>
-          </div>
-          <div className="flex flex-col justify-between bg-card shadow p-6 rounded-lg">
-            <div className="mb-1 text-muted-foreground text-sm">Average Time</div>
-            <div className="font-bold text-3xl text-accent-foreground">
-              {stats.averageTime ? formatTime(stats.averageTime) : '-'}
-            </div>
-          </div>
-          <div className="flex flex-col justify-between bg-card shadow p-6 rounded-lg">
-            <div className="mb-1 text-muted-foreground text-sm">Days with Best Time</div>
-            <div className="font-bold text-yellow-600 text-3xl">
-              {stats.daysWithBestTime ?? 0}
-            </div>
-          </div>
+          <StatCard
+            label="Total Completions"
+            value={stats.totalCompletions}
+            valueColor="text-primary"
+          />
+          <StatCard
+            label="Did Not Complete"
+            value={stats.didNotCompletes}
+            valueColor="text-orange-600"
+          />
+          <StatCard
+            label="Best Time"
+            value={stats.bestTime ? formatTime(stats.bestTime) : '-'}
+            valueColor="text-success"
+          />
+          <StatCard
+            label="Average Time"
+            value={stats.averageTime ? formatTime(stats.averageTime) : '-'}
+            valueColor="text-accent-foreground"
+          />
+          <StatCard
+            label="Days with Best Time"
+            value={stats.daysWithBestTime ?? 0}
+            valueColor="text-yellow-600"
+          />
         </div>
 
  
 
         {isAdmin && (
-          <div className="bg-card shadow p-6 rounded-lg">
-            <h2 className="mb-4 font-bold text-foreground text-xl">Admin Controls</h2>
-            <button
+          <Card>
+            <CardTitle>Admin Controls</CardTitle>
+            <Button
               onClick={async () => {
                 const code = await getTodayInviteCode();
                 setInviteCode(code);
@@ -315,16 +296,18 @@ export default function ProfilePage() {
                 setCodeExpiry(expiryTime.toLocaleTimeString());
                 setShowCode(true);
               }}
-              className="bg-primary hover:bg-primary/90 shadow-md px-6 py-3 rounded-lg w-full font-semibold text-primary-foreground transition-colors"
+              variant="primary"
+              size="lg"
+              className="w-full"
             >
               Generate Invite Code
-            </button>
-          </div>
+            </Button>
+          </Card>
         )}
 
         {showCode && (
           <div className="z-50 fixed inset-0 flex justify-center items-center bg-black bg-opacity-60 p-4">
-            <div className="bg-card shadow-2xl p-8 rounded-2xl w-full max-w-md">
+            <Card className="shadow-2xl p-8 w-full max-w-md">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="font-bold text-foreground text-3xl">Invite Code</h2>
                 <button
@@ -341,28 +324,32 @@ export default function ProfilePage() {
                 <div className="mb-4 text-orange-600 text-sm text-center">
                   ⏱️ Expires at {codeExpiry}
                 </div>
-                <button
+                <Button
                   onClick={() => {
                     navigator.clipboard.writeText(inviteCode);
                     alert('Code copied to clipboard!');
                   }}
-                  className="bg-primary hover:bg-primary/90 shadow-md px-6 py-3 rounded-lg w-full font-semibold text-primary-foreground transition-colors"
+                  variant="primary"
+                  size="lg"
+                  className="w-full"
                 >
                   Copy Code
-                </button>
+                </Button>
               </div>
-            </div>
+            </Card>
           </div>
         )}
 
-        <div className="bg-card shadow p-6 rounded-lg">
-          <button
+        <Card>
+          <Button
             onClick={() => logout()}
-            className="bg-destructive hover:bg-destructive/90 shadow-md px-6 py-3 rounded-lg w-full font-semibold text-destructive-foreground transition-colors"
+            variant="destructive"
+            size="lg"
+            className="w-full"
           >
             Sign Out
-          </button>
-        </div>
+          </Button>
+        </Card>
       </div>
 
   );

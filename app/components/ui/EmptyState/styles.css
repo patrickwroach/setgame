@@ -1,0 +1,3 @@
+.gradient-box {
+  @apply bg-linear-to-r from-gradient-start to-gradient-end shadow-lg p-6 rounded-lg;
+}

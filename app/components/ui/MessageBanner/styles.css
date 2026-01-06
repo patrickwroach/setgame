@@ -1,0 +1,19 @@
+.message-banner {
+  @apply text-center text-lg font-bold mb-3 p-3 rounded-lg shrink-0;
+}
+
+.message-success {
+  @apply bg-success text-success-foreground;
+}
+
+.message-gradient {
+  @apply bg-linear-to-r from-gradient-start to-gradient-end text-white;
+}
+
+.message-warning {
+  @apply bg-destructive/20 text-destructive-foreground;
+}
+
+.message-info {
+  @apply bg-accent text-accent-foreground;
+}

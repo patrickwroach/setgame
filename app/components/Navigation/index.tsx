@@ -1,9 +1,9 @@
 'use client';
 
-import { useAuth } from '../contexts/AuthContext';
-import { useGame } from '../contexts/GameContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useGame } from '../../contexts/GameContext';
 import { useRouter, usePathname } from 'next/navigation';
-import Timer from './Timer';
+import Timer from '@components/Timer';
 
 export default function Navigation() {
   const { user } = useAuth();
@@ -14,7 +14,6 @@ export default function Navigation() {
   if (!user) return null;
   
   const isHomePage = pathname === '/';
-  const isUnrankedPage = pathname === '/unranked';
   const pageTitle = pathname === '/profile' ? 'My Profile' : pathname === '/rankings' ? 'Daily Rankings' : pathname === '/unranked' ? 'Unranked' : null;
   
   return (

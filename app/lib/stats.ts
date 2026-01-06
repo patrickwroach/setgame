@@ -101,15 +101,6 @@ export async function getDailyLeaderboard(date: string): Promise<LeaderboardEntr
         const userData = await getUserDataByUid(doc.id);
         const displayName = userData?.displayName || doc.id.substring(0, 8) + '...';
         
-        const isDev = process.env.NODE_ENV === 'development';
-        if (isDev) {
-          console.log(`Leaderboard entry for ${doc.id}:`, {
-            userData,
-            displayName,
-            hasUserData: !!userData
-          });
-        }
-        
         leaderboard.push({
           userId: doc.id,
           displayName,

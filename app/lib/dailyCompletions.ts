@@ -27,7 +27,6 @@ export async function recordDailyCompletion(
   showedAllSets: boolean
 ): Promise<void> {
   if (!userId) {
-    console.warn('Cannot record completion: No user ID provided');
     return;
   }
 
@@ -103,13 +102,11 @@ export async function recordDailyCompletion(
       }
     }
   } catch (error: any) {
-    const isDev = process.env.NODE_ENV === 'development';
     // Log but don't throw permission errors
     if (error?.code === 'permission-denied') {
-      if (isDev) console.warn('Permission denied: User not authenticated');
       return;
     }
-    if (isDev) console.error('Error recording daily completion:', error);
+    console.error('Error recording daily completion:', error);
     throw error;
   }
 }

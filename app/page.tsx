@@ -1,6 +1,6 @@
 'use client';
 
-import SetGame from '@/app/components/SetGame';
+import SetGame from '@components/SetGame';
 import { useGame } from '@/app/contexts/GameContext';
 
 export default function Home() {
@@ -8,7 +8,6 @@ export default function Home() {
 
   return (
     <SetGame 
-        onShowSetsClick={() => setShowingSets(!showingSets)} 
         showingSets={showingSets}
         onFoundSetsChange={setFoundSets}
         onTimerChange={(startTime, isRunning) => {

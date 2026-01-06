@@ -1,0 +1,15 @@
+.card {
+  @apply bg-card shadow p-6 rounded-lg;
+}
+
+.card-header {
+  @apply mb-4;
+}
+
+.card-title {
+  @apply font-bold text-foreground text-xl;
+}
+
+.card-content {
+  @apply space-y-4;
+}

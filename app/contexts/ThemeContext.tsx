@@ -18,7 +18,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [theme, setThemeState] = useState<Theme>("system");
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
-  const [isInitialized, setIsInitialized] = useState(false);
 
   // Load theme preference from database or localStorage on mount
   useEffect(() => {
@@ -29,7 +28,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           const userData = await getUserDataByUid(user.uid);
           if (userData?.themePreference) {
             setThemeState(userData.themePreference);
-            setIsInitialized(true);
             return;
           }
         } catch (error) {
@@ -42,7 +40,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       if (stored) {
         setThemeState(stored);
       }
-      setIsInitialized(true);
     }
     
     loadTheme();

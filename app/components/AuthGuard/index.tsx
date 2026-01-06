@@ -1,7 +1,7 @@
 'use client';
 
-import { useAuth } from '../contexts/AuthContext';
-import AuthModal from './AuthModal';
+import { useAuth } from '../../contexts/AuthContext';
+import AuthModal from '@components/AuthModal';
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();

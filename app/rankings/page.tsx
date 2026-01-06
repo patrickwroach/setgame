@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 import { getDailyLeaderboard, formatTime } from '../lib/stats';
 import { getTodayDateString } from '../lib/dailyPuzzle';
 import { useAuth } from '../contexts/AuthContext';
+import EmptyState from '@components/ui/EmptyState';
+import LeaderboardEntry from '@components/ui/LeaderboardEntry';
+import NavigationArrows from '@components/ui/NavigationArrows';
+import Loading from '@components/ui/Loading';
+import { getWeekBounds, formatWeekRange, formatDate, getDateForOffset, launchDate } from '../lib/dateUtils';
 
 interface LeaderboardEntry {
   userId: string;
@@ -21,32 +26,12 @@ export default function RankingsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'daily' | 'weekly'>('daily');
   
-  // Launch date: December 11, 2024
-  const LAUNCH_DATE = new Date('2024-12-11T00:00:00');
+
 
   useEffect(() => {
     loadLeaderboards();
   }, [dayOffset, weekOffset]);
 
-  const getDateForOffset = (offset: number): string => {
-    const date = new Date();
-    date.setDate(date.getDate() + offset);
-    return date.toISOString().split('T')[0];
-  };
-
-  const getWeekBounds = (offset: number) => {
-    const today = new Date();
-    const currentDay = today.getDay();
-    const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() - currentDay + (offset * 7));
-    weekStart.setHours(0, 0, 0, 0);
-    
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6);
-    weekEnd.setHours(23, 59, 59, 999);
-    
-    return { weekStart, weekEnd };
-  };
 
   const loadLeaderboards = async () => {
     setLoading(true);
@@ -99,35 +84,22 @@ export default function RankingsPage() {
     setLoading(false);
   };
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr + 'T00:00:00');
-    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-  };
-
-  const formatWeekRange = () => {
-    const { weekStart, weekEnd } = getWeekBounds(weekOffset);
-    const startStr = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const endStr = weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    return `${startStr} - ${endStr}`;
-  };
 
   const currentDate = getDateForOffset(dayOffset);
-  const isToday = dayOffset === 0;
-  const isCurrentWeek = weekOffset === 0;
   const canGoForward = (activeTab === 'daily' ? dayOffset : weekOffset) < 0;
   
-  // Check if we can go back further (check if the PREVIOUS day/week would still be >= launch date)
+  // Check if we can go back further (check if the PREVIOUS day/week would still be >= launchDate)
   const previousDate = getDateForOffset(dayOffset - 1);
   const previousDateObj = new Date(previousDate + 'T00:00:00');
-  const canGoBackDaily = previousDateObj >= LAUNCH_DATE;
+  const canGoBackDaily = previousDateObj >= launchDate;
   
   const { weekStart: previousWeekStart } = getWeekBounds(weekOffset - 1);
-  const canGoBackWeekly = previousWeekStart >= LAUNCH_DATE;
+  const canGoBackWeekly = previousWeekStart >= launchDate;
 
-  if (loading) return <div className="p-8">Loading...</div>;
+  if (loading) return <Loading />;
 
   return (
-    <div className="space-y-6 mx-auto p-6 max-w-6xl">
+    <div className="space-y-6 mx-auto p-6 max-w-6xl page-fade-in">
       {/* Tab Navigation */}
       <div className="flex gap-2 bg-card shadow p-2 rounded-lg">
         <button
@@ -156,83 +128,31 @@ export default function RankingsPage() {
           </div>
 
           {todayLeaderboard.length === 0 ? (
-            <div className="flex flex-col justify-center items-center py-12 text-center">
-              <div className="bg-linear-to-r from-gradient-start to-gradient-end shadow-lg mb-4 p-8 rounded-lg">
-                <svg className="mx-auto mb-4 w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h3 className="mb-2 font-semibold text-white text-xl">Waiting for Sets to be Found</h3>
-                <p className="text-white/80">No matches have been completed for this day yet.</p>
-              </div>
-            </div>
+            <EmptyState
+              title="Waiting for Sets to be Found"
+              description="No matches have been completed for this day yet."
+            />
           ) : (
             <div className="space-y-2">
               {todayLeaderboard.map((entry, index) => (
-                <div
+                <LeaderboardEntry
                   key={entry.userId}
-                  className={`flex justify-between items-center p-4 rounded-lg ${
-                    index === 0
-                      ? 'bg-linear-to-r from-gradient-start to-gradient-end text-white'
-                      : user?.uid === entry.userId
-                      ? 'bg-primary/10 border-2 border-primary'
-                      : 'bg-secondary'
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`flex justify-center items-center rounded-full w-10 h-10 font-bold text-lg ${
-                      index === 0 ? 'bg-yellow-400 text-yellow-900' :
-                      index === 1 ? 'bg-muted text-muted-foreground' :
-                      index === 2 ? 'bg-orange-300 text-orange-900' :
-                      'bg-muted/50 text-muted-foreground'
-                    }`}>
-                      {index + 1}
-                    </div>
-                    <div className="max-w-[300px]">
-                      <div className={`font-semibold truncate ${
-                        index === 0 ? 'text-white' : 'text-foreground'
-                      }`}>
-                        {entry.displayName}
-                      </div>
-                    </div>
-                  </div>
-                  <div className={`font-mono font-bold text-xl ${
-                    index === 0 ? 'text-yellow-200' : 'text-success'
-                  }`}>
-                    {formatTime(entry.time)}
-                  </div>
-                </div>
+                  rank={index + 1}
+                  displayName={entry.displayName}
+                  value={formatTime(entry.time)}
+                  isCurrentUser={user?.uid === entry.userId}
+                  isWinner={index === 0}
+                />
               ))}
             </div>
           )}
-          <div className="flex justify-center items-center gap-2 mt-4">
-            <button
-              onClick={() => setDayOffset(dayOffset - 1)}
-              disabled={!canGoBackDaily}
-              className={`p-2 rounded-lg transition-colors ${
-                canGoBackDaily ? 'bg-secondary hover:bg-secondary/80' : 'bg-muted text-muted-foreground cursor-not-allowed'
-              }`}
-              title="Previous Day"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-            </button>
-            <span className="font-medium text-foreground text-sm">
-              {formatDate(currentDate)}
-            </span>
-            <button
-              onClick={() => setDayOffset(dayOffset + 1)}
-              disabled={!canGoForward}
-              className={`p-2 rounded-lg transition-colors ${
-                canGoForward ? 'bg-secondary hover:bg-secondary/80' : 'bg-muted text-muted-foreground cursor-not-allowed'
-              }`}
-              title="Next Day"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-              </svg>
-            </button>
-          </div>
+          <NavigationArrows
+            onPrevious={() => setDayOffset(dayOffset - 1)}
+            onNext={() => setDayOffset(dayOffset + 1)}
+            canGoBack={canGoBackDaily}
+            canGoForward={canGoForward}
+            label={formatDate(currentDate)}
+          />
         </div>
       )}
 
@@ -244,93 +164,32 @@ export default function RankingsPage() {
           </div>
 
           {weekLeaderboard.length === 0 ? (
-            <div className="flex flex-col justify-center items-center py-12 text-center">
-              <div className="bg-linear-to-r from-gradient-start to-gradient-end shadow-lg mb-4 p-8 rounded-lg">
-                <svg className="mx-auto mb-4 w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h3 className="mb-2 font-semibold text-white text-xl">Waiting for Sets to be Found</h3>
-                <p className="text-white/80">No matches have been completed for this week yet.</p>
-              </div>
-            </div>
+            <EmptyState
+              title="Waiting for Sets to be Found"
+              description="No matches have been completed for this week yet."
+            />
           ) : (
             <div className="space-y-2">
               {weekLeaderboard.map((entry: any, index) => (
-                <div
+                <LeaderboardEntry
                   key={entry.userId}
-                  className={`flex justify-between items-center p-4 rounded-lg ${
-                    index === 0
-                      ? 'bg-linear-to-r from-gradient-start to-gradient-end text-white'
-                      : user?.uid === entry.userId
-                      ? 'bg-primary/10 border-2 border-primary'
-                      : 'bg-secondary'
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`flex justify-center items-center rounded-full w-10 h-10 font-bold text-lg ${
-                      index === 0 ? 'bg-yellow-400 text-yellow-900' :
-                      index === 1 ? 'bg-muted text-muted-foreground' :
-                      index === 2 ? 'bg-orange-300 text-orange-900' :
-                      'bg-muted/50 text-muted-foreground'
-                    }`}>
-                      {index + 1}
-                    </div>
-                    <div className="max-w-[300px]">
-                      <div className={`font-semibold truncate ${
-                        index === 0 ? 'text-white' : 'text-foreground'
-                      }`}>
-                        {entry.displayName}
-                      </div>
-                      <div className={`text-sm ${
-                        index === 0 ? 'text-white/80' : 'text-muted-foreground'
-                      }`}>
-                        {entry.totalDays} day{entry.totalDays !== 1 ? 's' : ''} played
-                      </div>
-                    </div>
-                  </div>
-                  <div className={`font-bold text-xl ${
-                    index === 0 ? 'text-yellow-200' : 'text-success'
-                  }`}>
-                    {entry.bestDays}
-                    <div className={`text-xs font-normal ${
-                      index === 0 ? 'text-white/80' : 'text-muted-foreground'
-                    }`}>
-                      win{entry.bestDays !== 1 ? 's' : ''}
-                    </div>
-                  </div>
-                </div>
+                  rank={index + 1}
+                  displayName={entry.displayName}
+                  value={`${entry.bestDays} win${entry.bestDays !== 1 ? 's' : ''}`}
+                  subtitle={`${entry.totalDays} day${entry.totalDays !== 1 ? 's' : ''} played`}
+                  isCurrentUser={user?.uid === entry.userId}
+                  isWinner={index === 0}
+                />
               ))}
             </div>
           )}
-          <div className="flex justify-center items-center gap-2 mt-4">
-            <button
-              onClick={() => setWeekOffset(weekOffset - 1)}
-              disabled={!canGoBackWeekly}
-              className={`p-2 rounded-lg transition-colors ${
-                canGoBackWeekly ? 'bg-secondary hover:bg-secondary/80' : 'bg-muted text-muted-foreground cursor-not-allowed'
-              }`}
-              title="Previous Week"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-            </button>
-            <span className="font-medium text-foreground text-sm">
-              {formatWeekRange()}
-            </span>
-            <button
-              onClick={() => setWeekOffset(weekOffset + 1)}
-              disabled={!canGoForward}
-              className={`p-2 rounded-lg transition-colors ${
-                canGoForward ? 'bg-secondary hover:bg-secondary/80' : 'bg-muted text-muted-foreground cursor-not-allowed'
-              }`}
-              title="Next Week"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-              </svg>
-            </button>
-          </div>
+          <NavigationArrows
+            onPrevious={() => setWeekOffset(weekOffset - 1)}
+            onNext={() => setWeekOffset(weekOffset + 1)}
+            canGoBack={canGoBackWeekly}
+            canGoForward={canGoForward}
+            label={formatWeekRange(getWeekBounds(weekOffset).weekStart, getWeekBounds(weekOffset).weekEnd)}
+          />
         </div>
       )}
     </div>

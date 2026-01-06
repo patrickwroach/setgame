@@ -1,6 +1,6 @@
 'use client';
 
-import { Card } from '../lib/setLogic';
+import { Card } from '../../lib/setLogic';
 
 interface SetCardProps {
   card: Card;

@@ -103,3 +103,26 @@ body {
     --color-set-purple: 271 76% 65%;
   }
 }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.page-fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+/* Component Styles */
+@import "./components/ui/Button/styles.css";
+@import "./components/ui/Card/styles.css";
+@import "./components/ui/StatCard/styles.css";
+@import "./components/ui/Input/styles.css";
+@import "./components/ui/MessageBanner/styles.css";
+@import "./components/ui/Loading/styles.css";
+@import "./components/ui/EmptyState/styles.css";
+@import "./components/Navigation/styles.css";

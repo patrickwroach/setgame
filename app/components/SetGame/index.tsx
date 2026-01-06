@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, isValidSet, findAllSets } from '../lib/setLogic';
-import { generateDailyPuzzle, getTodayDateString } from '../lib/dailyPuzzle';
-import { recordDailyCompletion, getTodayCompletion } from '../lib/dailyCompletions';
-import { useAuth } from '../contexts/AuthContext';
-import SetCard from './SetCard';
+import { Card, isValidSet, findAllSets } from '../../lib/setLogic';
+import { generateDailyPuzzle, getTodayDateString } from '../../lib/dailyPuzzle';
+import { recordDailyCompletion, getTodayCompletion } from '../../lib/dailyCompletions';
+import { useAuth } from '../../contexts/AuthContext';
+import SetCard from '@components/SetCard';
+import MessageBanner from '@components/ui/MessageBanner';
+import Button from '@components/ui/Button';
 
 interface SetGameProps {
-  onShowSetsClick: () => void;
   showingSets: boolean;
   onFoundSetsChange: (count: number) => void;
   onTimerChange: (startTime: number, isRunning: boolean) => void;
@@ -16,7 +17,7 @@ interface SetGameProps {
 }
 const setsToFind = 6;
 const labels = ['A', 'B', 'C', 'D','E', 'F'];
-export default function SetGame({ onShowSetsClick, showingSets: externalShowingSets, onFoundSetsChange, onTimerChange, onCompletionChange }: SetGameProps) {
+export default function SetGame({ showingSets: externalShowingSets, onFoundSetsChange, onTimerChange, onCompletionChange }: SetGameProps) {
   const { user } = useAuth();
   const [board, setBoard] = useState<Card[]>([]);
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
@@ -220,7 +221,7 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
   };
 
   return (
-    <div className="flex flex-col flex-1 px-4 py-4 overflow-hidden">
+    <div className="flex flex-col flex-1 px-4 py-4 overflow-hidden page-fade-in">
       {!gameStarted && !todayCompleted && (
         <div className="flex flex-col flex-1 justify-center items-center">
           <div className="mb-8 text-center">
@@ -228,12 +229,14 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
             <p className="mb-2 text-muted-foreground">{`Find all ${setsToFind} valid sets on the board`}</p>
             <p className="text-muted-foreground text-sm">Your time starts when you click the button below</p>
           </div>
-          <button
+          <Button
             onClick={handleStartGame}
-            className="bg-primary hover:bg-primary/90 shadow-lg px-8 py-4 rounded-lg font-bold text-primary-foreground text-xl transition-colors"
+            variant="primary"
+            size="lg"
+            className="px-8 py-4 text-xl"
           >
             Start Game
-          </button>
+          </Button>
         </div>
       )}
 
@@ -241,19 +244,19 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
       {gameStarted && (
       <>
         {(message.includes('✅') || message.includes('🎉') || message.includes('⚠️') || message.includes('💡')) && (
-        <div className={`text-center text-lg font-bold mb-3 p-3 rounded-lg flex-shrink-0 ${
-          message.includes('✅') ? 'bg-success text-success-foreground' :
-          message.includes('🎉') ? 'bg-linear-to-r from-gradient-start to-gradient-end text-white' :
-          message.includes('⚠️') ? 'bg-destructive/20 text-destructive-foreground' :
-          message.includes('💡') ? 'bg-accent text-accent-foreground' :
-          'bg-muted text-muted-foreground'
-        }`}>
-          {message}
-        </div>
-      )}
+          <MessageBanner
+            message={message}
+            type={
+              message.includes('✅') ? 'success' :
+              message.includes('🎉') ? 'gradient' :
+              message.includes('⚠️') ? 'warning' :
+              message.includes('💡') ? 'info' : 'info'
+            }
+          />
+        )}
 
       {showingSets && (
-        <div className="flex-shrink-0 bg-accent/20 mb-3 p-3 border border-accent rounded-lg">
+        <div className="bg-accent/20 mb-3 p-3 border border-accent rounded-lg shrink-0">
           <div className="mb-2 font-semibold text-sm text-accent-foreground">All Sets on Board:</div>
           <div className="space-y-1">
             {allSets.map((set, idx) => {
@@ -272,9 +275,9 @@ export default function SetGame({ onShowSetsClick, showingSets: externalShowingS
       )}
 
       <div className="flex flex-1 justify-center items-center p-2 min-h-0">
-        <div className="gap-2 sm:gap-3 grid grid-cols-3 md:grid-cols-4 grid-rows-4 md:grid-rows-3 w-full max-w-[1200px] h-full max-h-[calc(100vh-80px)] md:aspect-[960/494]">
+        <div className="gap-2 sm:gap-3 grid grid-cols-3 md:grid-cols-4 grid-rows-4 md:grid-rows-3 w-full max-w-[1200px] h-full max-h-[calc(100vh-80px)] md:aspect-960/494">
           {board.map((card, index) => (
-            <div key={index} className="w-full aspect-square md:aspect-[3/2]">
+            <div key={index} className="w-full aspect-square md:aspect-3/2">
               <SetCard
                 card={card}
                 isSelected={selectedCards.includes(index)}

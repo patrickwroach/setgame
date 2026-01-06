@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -31,10 +31,6 @@ export default function AuthModal({ onClose }: AuthModalProps) {
         onClose();
       }
     } catch (err: any) {
-      console.log('[AuthModal] Error caught:', err);
-      console.log('[AuthModal] Error code:', err.code);
-      console.log('[AuthModal] Error message:', err.message);
-      
       if (err.message?.includes('administrator approval') || err.message?.includes('Account created')) {
         setSuccess('Account created! Please wait for administrator approval.');
       } else if (err.message?.includes('invite-only')) {
@@ -96,7 +92,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
         {success && (
           <div className="bg-primary/10 mb-6 p-6 border-2 border-primary rounded-lg">
             <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 bg-primary/20 mt-0.5 p-2 rounded-full">
+              <div className="bg-primary/20 mt-0.5 p-2 rounded-full shrink-0">
                 <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
