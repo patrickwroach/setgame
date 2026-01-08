@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { validateInviteCode } from '../lib/inviteCode';
+import { createUserRecord } from '../lib/users';
 
 interface AuthContextType {
   user: User | null;
@@ -54,7 +55,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     
     // Create the account
-    await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    
+    // Create user record in Firestore
+    await createUserRecord(email, userCredential.user.uid);
   };
 
   const signInWithGoogle = async () => {
@@ -68,7 +72,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('Invalid invite code. Please check the code and try again.');
     }
     
-    await signInWithPopup(auth, new GoogleAuthProvider());
+    const userCredential = await signInWithPopup(auth, new GoogleAuthProvider());
+    
+    // Create user record in Firestore
+    await createUserRecord(userCredential.user.email!, userCredential.user.uid);
   };
 
   const logout = async () => {

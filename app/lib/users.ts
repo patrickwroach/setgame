@@ -40,7 +40,8 @@ export async function createUserRecord(email: string, uid: string): Promise<void
       return;
     }
     
-    // New user, create with all fields including approved: false
+    // New user, create with all fields including approved: true
+    // Users with valid invite codes are pre-approved
     // Sanitize display name from email - only allow alphanumeric, dots, hyphens, underscores
     const emailPrefix = email.split('@')[0];
     const sanitized = emailPrefix.replace(/[^a-zA-Z0-9._-]/g, '');
@@ -50,7 +51,7 @@ export async function createUserRecord(email: string, uid: string): Promise<void
       email: email.toLowerCase(),
       uid,
       displayName,
-      approved: false,
+      approved: true,
       admin: false,
       createdAt: serverTimestamp(),
     });
