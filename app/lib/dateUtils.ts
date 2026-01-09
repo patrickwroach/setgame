@@ -1,6 +1,13 @@
 export const launchDate = new Date('2026-01-05T00:00:00');
+
+// Get current date in EST timezone
+function getESTDate(): Date {
+  const now = new Date();
+  return new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+}
+
 export function getWeekBounds(offset: number) {
-  const today = new Date();
+  const today = getESTDate();
   const currentDay = today.getDay();
   const weekStart = new Date(today);
   weekStart.setDate(today.getDate() - currentDay + (offset * 7));
@@ -25,7 +32,7 @@ export function formatDate(dateStr: string): string {
 }
 
 export function getDateForOffset(offset: number): string {
-  const date = new Date();
+  const date = getESTDate();
   date.setDate(date.getDate() + offset);
-  return date.toISOString().split('T')[0];
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }

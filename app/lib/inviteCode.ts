@@ -2,7 +2,7 @@ import { doc, getDoc, setDoc, increment, updateDoc } from 'firebase/firestore';
 import { db } from './firebase';
 
 function generateDailyCode(): string {
-  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); // YYYY-MM-DD in EST
   const words = ['ALPHA', 'BRAVO', 'CHARLIE', 'DELTA', 'ECHO', 'FOXTROT', 'GOLF', 'HOTEL'];
   const word = words[Math.floor(Math.random() * words.length)];
   const num = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
@@ -65,7 +65,7 @@ export async function getTodayInviteCode(): Promise<string> {
 export async function validateInviteCode(code: string): Promise<boolean> {
   // Check rate limiting first
   const fingerprint = getBrowserFingerprint();
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
   const attemptDocRef = doc(db, 'signup_attempts', `${fingerprint}-${today}`);
   
   const attemptDoc = await getDoc(attemptDocRef);

@@ -88,7 +88,7 @@ export default function ProfilePage() {
   for (let i = 0; i < 7; i++) {
     const day = new Date(weekStart);
     day.setDate(weekStart.getDate() + i);
-    const dateStr = day.toISOString().split('T')[0];
+    const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
     const completion = weekCompletions.find((c: any) => c.date === dateStr);
     weekDays.push({
       date: dateStr,

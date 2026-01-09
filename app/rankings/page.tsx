@@ -47,7 +47,7 @@ export default function RankingsPage() {
     
     // For each day in the week, find who had the best time
     for (let d = new Date(weekStart); d <= weekEnd; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       const dayData = await getDailyLeaderboard(dateStr);
       
       // Track all participants
