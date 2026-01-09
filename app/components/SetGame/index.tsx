@@ -1,9 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, isValidSet, findAllSets } from '../../lib/setLogic';
 import { generateDailyPuzzle, getTodayDateString } from '../../lib/dailyPuzzle';
 import { recordDailyCompletion, getTodayCompletion } from '../../lib/dailyCompletions';
+import { 
+  savePuzzleProgress, 
+  clearPuzzleProgress, 
+  handleStalePuzzle,
+  hasUnfinishedPuzzle,
+  formatElapsedTime,
+  PuzzleProgress 
+} from '../../lib/puzzleProgress';
 import { useAuth } from '../../contexts/AuthContext';
 import SetCard from '@components/SetCard';
 import MessageBanner from '@components/ui/MessageBanner';
@@ -13,11 +21,12 @@ interface SetGameProps {
   showingSets: boolean;
   onFoundSetsChange: (count: number) => void;
   onTimerChange: (startTime: number, isRunning: boolean) => void;
+  onTimeOffsetChange: (offset: number) => void;
   onCompletionChange: (completed: boolean) => void;
 }
 const setsToFind = 6;
 const labels = ['A', 'B', 'C', 'D','E', 'F'];
-export default function SetGame({ showingSets: externalShowingSets, onFoundSetsChange, onTimerChange, onCompletionChange }: SetGameProps) {
+export default function SetGame({ showingSets: externalShowingSets, onFoundSetsChange, onTimerChange, onTimeOffsetChange, onCompletionChange }: SetGameProps) {
   const { user } = useAuth();
   const [board, setBoard] = useState<Card[]>([]);
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
@@ -37,6 +46,120 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
   const [todayCompleted, setTodayCompleted] = useState<boolean>(false);
   const [currentDate, setCurrentDate] = useState<string>('');
   const [gameStarted, setGameStarted] = useState<boolean>(false);
+  const [showResumeModal, setShowResumeModal] = useState<boolean>(false);
+  const [savedProgress, setSavedProgress] = useState<PuzzleProgress | null>(null);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+  const pausedTimeRef = useRef<number>(0);
+  const lastSaveRef = useRef<number>(0);
+  const accumulatedTimeRef = useRef<number>(0);
+
+  // Get current elapsed time accounting for pauses
+  const getCurrentElapsedSeconds = useCallback(() => {
+    if (!isTimerRunning) {
+      return accumulatedTimeRef.current;
+    }
+    return accumulatedTimeRef.current + (Date.now() - timerStartTime) / 1000;
+  }, [isTimerRunning, timerStartTime]);
+
+  // Save progress to local storage
+  const saveProgress = useCallback(() => {
+    if (!gameStarted || todayCompleted || !currentDate) return;
+    
+    const now = Date.now();
+    // Throttle saves to every 1 second minimum
+    if (now - lastSaveRef.current < 1000) return;
+    lastSaveRef.current = now;
+
+    const progress: PuzzleProgress = {
+      date: currentDate,
+      elapsedSeconds: getCurrentElapsedSeconds(),
+      foundSetKeys: Array.from(foundSets),
+      lastUpdated: now,
+    };
+    savePuzzleProgress(progress);
+  }, [gameStarted, todayCompleted, currentDate, foundSets, getCurrentElapsedSeconds]);
+
+  // Handle visibility change (tab switch, minimize, etc.)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Tab is hidden - pause and save
+        if (isTimerRunning && gameStarted && !todayCompleted) {
+          // Accumulate the time before pausing
+          accumulatedTimeRef.current += (Date.now() - timerStartTime) / 1000;
+          onTimeOffsetChange(accumulatedTimeRef.current);
+          setIsPaused(true);
+          setIsTimerRunning(false);
+          onTimerChange(timerStartTime, false);
+          saveProgress();
+        }
+      } else {
+        // Tab is visible again - resume if was paused
+        if (isPaused && gameStarted && !todayCompleted) {
+          const newStartTime = Date.now();
+          setTimerStartTime(newStartTime);
+          setIsTimerRunning(true);
+          setIsPaused(false);
+          onTimerChange(newStartTime, true);
+        }
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      // Save progress before page unload
+      if (gameStarted && !todayCompleted && currentDate) {
+        const progress: PuzzleProgress = {
+          date: currentDate,
+          elapsedSeconds: getCurrentElapsedSeconds(),
+          foundSetKeys: Array.from(foundSets),
+          lastUpdated: Date.now(),
+        };
+        savePuzzleProgress(progress);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isTimerRunning, isPaused, gameStarted, todayCompleted, timerStartTime, currentDate, foundSets, onTimerChange, onTimeOffsetChange, saveProgress, getCurrentElapsedSeconds]);
+
+  // Periodic progress sync (every 5 seconds while playing)
+  useEffect(() => {
+    if (!isTimerRunning || !gameStarted || todayCompleted) return;
+
+    const interval = setInterval(() => {
+      saveProgress();
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [isTimerRunning, gameStarted, todayCompleted, saveProgress]);
+
+  // Check for stale puzzles and unfinished puzzles on mount
+  useEffect(() => {
+    const checkSavedProgress = async () => {
+      if (!user) return;
+
+      // First check for stale puzzle from previous day
+      const wasStale = await handleStalePuzzle(user.uid);
+      if (wasStale) {
+        // Stale puzzle was cleared and marked incomplete
+        return;
+      }
+
+      // Check for unfinished puzzle from today
+      const unfinished = hasUnfinishedPuzzle();
+      if (unfinished) {
+        setSavedProgress(unfinished);
+        setShowResumeModal(true);
+      }
+    };
+
+    checkSavedProgress();
+  }, [user]);
 
   // Safety check: Only load puzzle if user is authenticated
   useEffect(() => {
@@ -88,12 +211,37 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
 
   const handleStartGame = () => {
     setGameStarted(true);
+    accumulatedTimeRef.current = 0;
+    onTimeOffsetChange(0);
     const newStartTime = Date.now();
     setTimerStartTime(newStartTime);
     setIsTimerRunning(true);
     onTimerChange(newStartTime, true);
     setMessage('');
+    clearPuzzleProgress();
   };
+
+  const handleResumeGame = () => {
+    if (!savedProgress) return;
+    
+    setGameStarted(true);
+    accumulatedTimeRef.current = savedProgress.elapsedSeconds;
+    onTimeOffsetChange(savedProgress.elapsedSeconds);
+    const newStartTime = Date.now();
+    setTimerStartTime(newStartTime);
+    setIsTimerRunning(true);
+    onTimerChange(newStartTime, true);
+    
+    // Restore found sets
+    const restoredSets = new Set(savedProgress.foundSetKeys);
+    setFoundSets(restoredSets);
+    onFoundSetsChange(restoredSets.size);
+    
+    setShowResumeModal(false);
+    setSavedProgress(null);
+    setMessage(`${setsToFind - restoredSets.size} sets remaining`);
+  };
+
 
 
   // Handle show sets from parent
@@ -106,8 +254,9 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
         
         // Record as incomplete if user shows all sets
         if (user && !todayCompleted) {
-          const timeElapsed = (Date.now() - timerStartTime) / 1000;
+          const timeElapsed = getCurrentElapsedSeconds();
           await recordDailyCompletion(user.uid, timeElapsed, true);
+          clearPuzzleProgress();
           setTodayCompleted(true);
           onCompletionChange(true);
           setMessage('💡 Showing all sets - marked as incomplete');
@@ -166,10 +315,13 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
           
           // Check if puzzle is completed
           if (newFoundSets.size === setsToFind) {
-            const timeElapsed = (Date.now() - timerStartTime) / 1000;
+            const timeElapsed = getCurrentElapsedSeconds();
             setCompletionTime(timeElapsed);
             setIsTimerRunning(false);
             onTimerChange(timerStartTime, false);
+            
+            // Clear progress from local storage on completion
+            clearPuzzleProgress();
             
             // Record completion if user hasn't shown all sets and hasn't completed today
             if (user && !hasShownSets && !todayCompleted) {
@@ -222,7 +374,39 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
 
   return (
     <div className="flex flex-col flex-1 px-4 py-4 overflow-hidden page-fade-in">
-      {!gameStarted && !todayCompleted && (
+      {/* Resume Modal */}
+      {showResumeModal && savedProgress && (
+        <div className="z-50 fixed inset-0 flex justify-center items-center bg-black bg-opacity-60 p-4">
+          <div className="bg-card shadow-2xl p-8 rounded-2xl w-full max-w-md">
+            <div className="mb-6">
+              <h2 className="mb-2 font-bold text-foreground text-3xl">Resume Puzzle?</h2>
+              <p className="text-muted-foreground">You have an unfinished puzzle from earlier today.</p>
+            </div>
+            
+            <div className="bg-secondary/50 mb-6 p-4 rounded-lg">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-muted-foreground">Time elapsed:</span>
+                <span className="font-semibold text-foreground">{formatElapsedTime(savedProgress.elapsedSeconds)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Sets found:</span>
+                <span className="font-semibold text-foreground">{savedProgress.foundSetKeys.length} / {setsToFind}</span>
+              </div>
+            </div>
+            
+            <Button
+              onClick={handleResumeGame}
+              variant="primary"
+              size="lg"
+              className="w-full"
+            >
+              Resume Game
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {!gameStarted && !todayCompleted && !showResumeModal && (
         <div className="flex flex-col flex-1 justify-center items-center">
           <div className="mb-8 text-center">
             <h2 className="mb-4 font-bold text-foreground text-3xl">Daily SET Challenge</h2>

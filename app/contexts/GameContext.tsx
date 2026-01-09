@@ -11,6 +11,8 @@ interface GameContextType {
   setTimerStartTime: (time: number) => void;
   isTimerRunning: boolean;
   setIsTimerRunning: (running: boolean) => void;
+  timeOffset: number;
+  setTimeOffset: (offset: number) => void;
   showingSets: boolean;
   setShowingSets: (showing: boolean) => void;
   todayCompleted: boolean;
@@ -24,6 +26,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [foundSets, setFoundSets] = useState(0);
   const [timerStartTime, setTimerStartTime] = useState(Date.now());
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [timeOffset, setTimeOffset] = useState(0);
   const [showingSets, setShowingSets] = useState(false);
   const [todayCompleted, setTodayCompleted] = useState(false);
 
@@ -49,6 +52,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setTimerStartTime,
         isTimerRunning,
         setIsTimerRunning,
+        timeOffset,
+        setTimeOffset,
         showingSets,
         setShowingSets,
         todayCompleted,

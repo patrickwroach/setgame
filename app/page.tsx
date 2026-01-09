@@ -4,7 +4,7 @@ import SetGame from '@components/SetGame';
 import { useGame } from '@/app/contexts/GameContext';
 
 export default function Home() {
-  const { showingSets, setShowingSets, setFoundSets, setTimerStartTime, setIsTimerRunning, setTodayCompleted } = useGame();
+  const { showingSets, setShowingSets, setFoundSets, setTimerStartTime, setIsTimerRunning, setTimeOffset, setTodayCompleted } = useGame();
 
   return (
     <SetGame 
@@ -14,6 +14,7 @@ export default function Home() {
           setTimerStartTime(startTime);
           setIsTimerRunning(isRunning);
         }}
+        onTimeOffsetChange={setTimeOffset}
         onCompletionChange={setTodayCompleted}
       />
   );

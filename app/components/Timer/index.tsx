@@ -5,20 +5,26 @@ import { useEffect, useState } from 'react';
 interface TimerProps {
   isRunning: boolean;
   startTime: number;
+  timeOffset?: number;
   onTimeUpdate?: (seconds: number) => void;
 }
 
-export default function Timer({ isRunning, startTime, onTimeUpdate }: TimerProps) {
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+export default function Timer({ isRunning, startTime, timeOffset = 0, onTimeUpdate }: TimerProps) {
+  const [elapsedSeconds, setElapsedSeconds] = useState(timeOffset);
 
   useEffect(() => {
     if (!isRunning) {
-      setElapsedSeconds(0);
+      // Keep showing the offset time when paused
+      setElapsedSeconds(timeOffset);
       return;
     }
 
+    // Initial calculation
+    const calculateElapsed = () => Math.floor(timeOffset + (Date.now() - startTime) / 1000);
+    setElapsedSeconds(calculateElapsed());
+
     const interval = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const elapsed = calculateElapsed();
       setElapsedSeconds(elapsed);
       if (onTimeUpdate) {
         onTimeUpdate(elapsed);
@@ -26,7 +32,7 @@ export default function Timer({ isRunning, startTime, onTimeUpdate }: TimerProps
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isRunning, startTime, onTimeUpdate]);
+  }, [isRunning, startTime, timeOffset, onTimeUpdate]);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);

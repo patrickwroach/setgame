@@ -7,7 +7,7 @@ import Timer from '@components/Timer';
 
 export default function Navigation() {
   const { user } = useAuth();
-  const { foundSets, timerStartTime, isTimerRunning, showingSets, setShowingSets, todayCompleted } = useGame();
+  const { foundSets, timerStartTime, isTimerRunning, timeOffset, showingSets, setShowingSets, todayCompleted } = useGame();
   const router = useRouter();
   const pathname = usePathname();
   
@@ -43,6 +43,7 @@ export default function Navigation() {
               <Timer 
                 isRunning={isTimerRunning} 
                 startTime={timerStartTime}
+                timeOffset={timeOffset}
               />
             </div>
           )}
