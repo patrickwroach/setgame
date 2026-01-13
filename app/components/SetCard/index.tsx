@@ -92,7 +92,7 @@ export default function SetCard({ card, isSelected, isInSet = false, setLabels =
     <div
       onClick={onClick}
       className={`
-        bg-card rounded-lg shadow-md cursor-pointer transition-all duration-200
+        bg-card rounded-lg shadow-md cursor-pointer transition-all duration-0
         hover:shadow-xl hover:scale-105
         ${isSelected ? 'ring-4 ring-primary scale-105' : ''}
         ${isInSet && !isSelected ? 'ring-4 ring-accent' : ''}
