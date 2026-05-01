@@ -165,55 +165,6 @@ export async function getAllTimeBestLeaderboard(limitCount: number = 50): Promis
 }
 
 /**
- * Get average time leaderboard
- */
-export async function getAverageTimeLeaderboard(limitCount: number = 50): Promise<Array<{
-  userId: string;
-  displayName: string;
-  averageTime: number;
-  totalCompletions: number;
-}>> {
-  try {
-    const completionsRef = collection(db, 'daily_completions');
-    const snapshot = await getDocs(completionsRef);
-    
-    const averages: Array<{
-      userId: string;
-      displayName: string;
-      averageTime: number;
-      totalCompletions: number;
-    }> = [];
-    
-    for (const doc of snapshot.docs) {
-      const data = doc.data();
-      const completions = data.completions || {};
-      
-      const validCompletions = Object.values(completions).filter((c: any) => c.completed);
-      
-      if (validCompletions.length >= 3) { // Minimum 3 completions to qualify
-        const times = validCompletions.map((c: any) => c.completionTime);
-        const averageTime = times.reduce((sum: number, t: number) => sum + t, 0) / times.length;
-        
-        const userData = await getUserDataByUid(doc.id);
-        averages.push({
-          userId: doc.id,
-          displayName: userData?.displayName || doc.id.substring(0, 8) + '...',
-          averageTime,
-          totalCompletions: validCompletions.length,
-        });
-      }
-    }
-    
-    // Sort by average time
-    return averages.sort((a, b) => a.averageTime - b.averageTime).slice(0, limitCount);
-  } catch (error) {
-    const isDev = process.env.NODE_ENV === 'development';
-    if (isDev) console.error('Error getting average time leaderboard:', error);
-    return [];
-  }
-}
-
-/**
  * Count the number of days where a user had the best time among all users
  * Only counts days where the user completed the puzzle (did not completes are disqualified)
  */
