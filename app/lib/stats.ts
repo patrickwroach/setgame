@@ -27,6 +27,18 @@ export interface LeaderboardEntry {
   date: string;
 }
 
+export interface TimeSeriesPoint {
+  label: string;
+  avgTime: number | null;
+  runningAvg: number | null;
+}
+
+export interface AveragesOverTime {
+  daily: TimeSeriesPoint[];
+  ytd: TimeSeriesPoint[];
+  monthly: TimeSeriesPoint[];
+}
+
 /**
  * Get comprehensive stats for a user
  */
@@ -80,6 +92,92 @@ export async function getUserStats(userId: string): Promise<UserStats> {
     completionsByMonth,
     recentCompletions,
   };
+}
+
+/**
+ * Get time series data for averages over time chart
+ */
+export async function getAveragesOverTime(userId: string): Promise<AveragesOverTime> {
+  const completions = await getAllCompletions(userId);
+
+  // Filter to completed only
+  const completed = Object.entries(completions)
+    .filter(([_, data]) => data.completed)
+    .map(([date, data]) => ({ date, time: data.completionTime }));
+
+  const now = new Date();
+
+  // --- Daily: last 30 days ---
+  const daily: TimeSeriesPoint[] = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(now.getDate() - i);
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const match = completed.find(c => c.date === dateStr);
+    daily.push({
+      label: `${d.getMonth() + 1}/${d.getDate()}`,
+      avgTime: match ? match.time : null,
+      runningAvg: null,
+    });
+  }
+  computeRunningAvg(daily);
+
+  // --- YTD: Jan of current year through current month ---
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth(); // 0-indexed
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  const ytd: TimeSeriesPoint[] = [];
+  for (let m = 0; m <= currentMonth; m++) {
+    const monthKey = `${currentYear}-${String(m + 1).padStart(2, '0')}`;
+    const monthTimes = completed
+      .filter(c => c.date.startsWith(monthKey))
+      .map(c => c.time);
+    ytd.push({
+      label: monthNames[m],
+      avgTime: monthTimes.length > 0
+        ? monthTimes.reduce((sum, t) => sum + t, 0) / monthTimes.length
+        : null,
+      runningAvg: null,
+    });
+  }
+  computeRunningAvg(ytd);
+
+  // --- Monthly: trailing 12 months ---
+  const monthly: TimeSeriesPoint[] = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(currentYear, currentMonth - i, 1);
+    const y = d.getFullYear();
+    const m = d.getMonth();
+    const monthKey = `${y}-${String(m + 1).padStart(2, '0')}`;
+    const monthTimes = completed
+      .filter(c => c.date.startsWith(monthKey))
+      .map(c => c.time);
+    monthly.push({
+      label: `${monthNames[m]} '${String(y).slice(2)}`,
+      avgTime: monthTimes.length > 0
+        ? monthTimes.reduce((sum, t) => sum + t, 0) / monthTimes.length
+        : null,
+      runningAvg: null,
+    });
+  }
+  computeRunningAvg(monthly);
+
+  return { daily, ytd, monthly };
+}
+
+function computeRunningAvg(points: TimeSeriesPoint[]): void {
+  let sum = 0;
+  let count = 0;
+  let last: number | null = null;
+  for (const p of points) {
+    if (p.avgTime !== null) {
+      sum += p.avgTime;
+      count++;
+      last = sum / count;
+    }
+    p.runningAvg = last;
+  }
 }
 
 /**
@@ -160,55 +258,6 @@ export async function getAllTimeBestLeaderboard(limitCount: number = 50): Promis
   } catch (error) {
     const isDev = process.env.NODE_ENV === 'development';
     if (isDev) console.error('Error getting all-time leaderboard:', error);
-    return [];
-  }
-}
-
-/**
- * Get average time leaderboard
- */
-export async function getAverageTimeLeaderboard(limitCount: number = 50): Promise<Array<{
-  userId: string;
-  displayName: string;
-  averageTime: number;
-  totalCompletions: number;
-}>> {
-  try {
-    const completionsRef = collection(db, 'daily_completions');
-    const snapshot = await getDocs(completionsRef);
-    
-    const averages: Array<{
-      userId: string;
-      displayName: string;
-      averageTime: number;
-      totalCompletions: number;
-    }> = [];
-    
-    for (const doc of snapshot.docs) {
-      const data = doc.data();
-      const completions = data.completions || {};
-      
-      const validCompletions = Object.values(completions).filter((c: any) => c.completed);
-      
-      if (validCompletions.length >= 3) { // Minimum 3 completions to qualify
-        const times = validCompletions.map((c: any) => c.completionTime);
-        const averageTime = times.reduce((sum: number, t: number) => sum + t, 0) / times.length;
-        
-        const userData = await getUserDataByUid(doc.id);
-        averages.push({
-          userId: doc.id,
-          displayName: userData?.displayName || doc.id.substring(0, 8) + '...',
-          averageTime,
-          totalCompletions: validCompletions.length,
-        });
-      }
-    }
-    
-    // Sort by average time
-    return averages.sort((a, b) => a.averageTime - b.averageTime).slice(0, limitCount);
-  } catch (error) {
-    const isDev = process.env.NODE_ENV === 'development';
-    if (isDev) console.error('Error getting average time leaderboard:', error);
     return [];
   }
 }

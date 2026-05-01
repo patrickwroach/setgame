@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { getUserStats, formatTime } from '../lib/stats';
+import { getUserStats, getAveragesOverTime, formatTime } from '../lib/stats';
+import type { AveragesOverTime } from '../lib/stats';
+import AveragesChart from '@components/ui/AveragesChart';
 import { updateDisplayName, getUserDataByUid } from '../lib/users';
 import { getTodayInviteCode } from '../lib/inviteCode';
 import { getTodayDateString } from '../lib/dailyPuzzle';
@@ -27,6 +29,7 @@ export default function ProfilePage() {
   const [showCode, setShowCode] = useState(false);
   const [codeExpiry, setCodeExpiry] = useState<string>('');
   const [weekOffset, setWeekOffset] = useState(0);
+  const [averages, setAverages] = useState<AveragesOverTime | null>(null);
 
   useEffect(() => {
     if (loading) return;
@@ -36,8 +39,12 @@ export default function ProfilePage() {
   async function loadStats() {
     if (!user?.email) return;
     setLoadingStats(true);
-    const data = await getUserStats(user.uid);
+    const [data, averagesData] = await Promise.all([
+      getUserStats(user.uid),
+      getAveragesOverTime(user.uid),
+    ]);
     setStats(data);
+    setAverages(averagesData);
     setNewName(data.displayName);
     
     // Check if user is admin from user document
@@ -253,6 +260,11 @@ export default function ProfilePage() {
               </button>
             </div> */}
             <NavigationArrows onPrevious={() => setWeekOffset(weekOffset - 1)} onNext={() => setWeekOffset(weekOffset + 1)} canGoBack={canGoBackWeekly} canGoForward={canGoForward} label={formatWeekRange(weekStart, weekEnd)} />
+        </Card>
+
+        <Card>
+          <CardTitle>Average Time Over Time</CardTitle>
+          <AveragesChart data={averages} isLoading={loadingStats} />
         </Card>
 
         <div className="gap-4 grid grid-cols-2 md:grid-cols-5">
