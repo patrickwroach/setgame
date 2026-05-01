@@ -5,6 +5,7 @@ import { GameProvider } from "./contexts/GameContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AuthGuard from "@components/AuthGuard";
 import Navigation from "@components/Navigation";
+import AnnouncementBanner from "@components/AnnouncementBanner";
 
 export const metadata: Metadata = {
   title: "Set Set Set",
@@ -25,6 +26,7 @@ export default function RootLayout({
               <AuthGuard>
                 <div className="flex flex-col min-h-screen">
                   <Navigation />
+                  <AnnouncementBanner />
                   <main>
                     {children}
                   </main>
