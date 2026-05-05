@@ -16,6 +16,7 @@ import Input from '@components/ui/Input';
 import NavigationArrows from '@components/ui/NavigationArrows';
 import Loading from '@components/ui/Loading';
 import { getWeekBounds, formatWeekRange, launchDate as LAUNCH_DATE } from '../lib/dateUtils';
+import { getAllAnnouncements, saveAnnouncement, deleteAnnouncement, Announcement } from '../lib/announcements';
 
 export default function ProfilePage() {
   const { user, loading, logout } = useAuth();
@@ -30,6 +31,9 @@ export default function ProfilePage() {
   const [codeExpiry, setCodeExpiry] = useState<string>('');
   const [weekOffset, setWeekOffset] = useState(0);
   const [averages, setAverages] = useState<AveragesOverTime | null>(null);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [newAnnouncement, setNewAnnouncement] = useState({ message: '', startDate: '', endDate: '' });
+  const [savingAnnouncement, setSavingAnnouncement] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -50,6 +54,10 @@ export default function ProfilePage() {
     // Check if user is admin from user document
     const userData = await getUserDataByUid(user.uid);
     setIsAdmin(userData?.admin === true);
+
+    if (userData?.admin === true) {
+      getAllAnnouncements().then(setAnnouncements);
+    }
     
     setLoadingStats(false);
   }
@@ -314,6 +322,91 @@ export default function ProfilePage() {
             >
               Generate Invite Code
             </Button>
+          </Card>
+        )}
+
+        {isAdmin && (
+          <Card className="p-2 md:p-6">
+            <CardTitle>Announcements</CardTitle>
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <Input
+                  value={newAnnouncement.message}
+                  onChange={(e) => setNewAnnouncement((prev) => ({ ...prev, message: e.target.value }))}
+                  placeholder="Announcement message"
+                  maxLength={280}
+                />
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <label className="block mb-1 text-muted-foreground text-xs">Start Date</label>
+                    <input
+                      type="date"
+                      value={newAnnouncement.startDate}
+                      onChange={(e) => setNewAnnouncement((prev) => ({ ...prev, startDate: e.target.value }))}
+                      className="input w-full"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block mb-1 text-muted-foreground text-xs">End Date</label>
+                    <input
+                      type="date"
+                      value={newAnnouncement.endDate}
+                      onChange={(e) => setNewAnnouncement((prev) => ({ ...prev, endDate: e.target.value }))}
+                      className="input w-full"
+                    />
+                  </div>
+                </div>
+                <Button
+                  onClick={async () => {
+                    const { message, startDate, endDate } = newAnnouncement;
+                    if (!message.trim() || !startDate || !endDate) return;
+                    if (endDate < startDate) {
+                      alert('End date must be on or after start date');
+                      return;
+                    }
+                    setSavingAnnouncement(true);
+                    try {
+                      await saveAnnouncement({ message: message.trim(), startDate, endDate, createdBy: user!.uid });
+                      setNewAnnouncement({ message: '', startDate: '', endDate: '' });
+                      const updated = await getAllAnnouncements();
+                      setAnnouncements(updated);
+                    } catch {
+                      alert('Failed to save announcement');
+                    }
+                    setSavingAnnouncement(false);
+                  }}
+                  variant="primary"
+                  size="md"
+                  className="w-full"
+                  disabled={savingAnnouncement || !newAnnouncement.message.trim() || !newAnnouncement.startDate || !newAnnouncement.endDate}
+                >
+                  {savingAnnouncement ? 'Saving...' : 'Add Announcement'}
+                </Button>
+              </div>
+
+              {announcements.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <h3 className="text-sm font-semibold text-muted-foreground">Existing Announcements</h3>
+                  {announcements.map((a) => (
+                    <div key={a.id} className="flex justify-between items-start gap-2 p-3 bg-muted rounded-lg">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-foreground">{a.message}</p>
+                        <p className="text-xs text-muted-foreground">{a.startDate} → {a.endDate}</p>
+                      </div>
+                      <button
+                        onClick={async () => {
+                          await deleteAnnouncement(a.id);
+                          setAnnouncements((prev) => prev.filter((x) => x.id !== a.id));
+                        }}
+                        className="text-destructive hover:text-destructive/80 text-sm shrink-0"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </Card>
         )}
 

@@ -9,6 +9,7 @@ import LeaderboardEntry from '@components/ui/LeaderboardEntry';
 import NavigationArrows from '@components/ui/NavigationArrows';
 import Loading from '@components/ui/Loading';
 import { getWeekBounds, formatWeekRange, formatDate, getDateForOffset, launchDate } from '../lib/dateUtils';
+import CommentsSection from '@components/CommentsSection';
 
 interface LeaderboardEntry {
   userId: string;
@@ -192,6 +193,9 @@ export default function RankingsPage() {
           />
         </div>
       )}
+
+      {/* Comments Section — shared across daily/weekly tabs, keyed by daily date */}
+      <CommentsSection date={currentDate} />
     </div>
   );
 }
