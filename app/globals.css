@@ -96,6 +96,10 @@ body {
   stroke: hsl(var(--color-set-purple));
 }
 
+.text-set-purple {
+  color: hsl(var(--color-set-purple));
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --color-set-red: 0 91% 70%;

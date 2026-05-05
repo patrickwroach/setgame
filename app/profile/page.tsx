@@ -294,7 +294,7 @@ export default function ProfilePage() {
           <StatCard
             label="Average Time"
             value={stats.averageTime ? formatTime(stats.averageTime) : '-'}
-            valueColor="text-accent-foreground"
+            valueColor="text-set-purple"
           />
           <StatCard
             label="Days with Best Time"
