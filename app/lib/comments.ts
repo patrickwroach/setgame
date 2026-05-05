@@ -19,6 +19,7 @@ export interface Comment {
   userId: string;
   displayName: string;
   text: string;
+  gifUrl?: string;
   parentId: string | null;
   createdAt: Timestamp | null;
   reactions: { [emoji: string]: string[] };
@@ -48,6 +49,7 @@ export function subscribeToComments(
           userId: data?.userId ?? '',
           displayName: data?.displayName ?? '',
           text: data?.text ?? '',
+          gifUrl: data?.gifUrl || undefined,
           parentId: data?.parentId ?? null,
           createdAt: data?.createdAt ?? null,
           reactions: data?.reactions ?? {},
@@ -67,22 +69,26 @@ export async function addComment(
   userId: string,
   displayName: string,
   text: string,
-  parentId: string | null = null
+  parentId: string | null = null,
+  gifUrl?: string
 ): Promise<void> {
   const trimmed = text.trim();
-  if (!trimmed || trimmed.length > MAX_COMMENT_LENGTH) {
+  if (!gifUrl && (!trimmed || trimmed.length > MAX_COMMENT_LENGTH)) {
     throw new Error(`Comment must be 1-${MAX_COMMENT_LENGTH} characters.`);
   }
   if (!userId) throw new Error('Must be signed in to comment.');
 
-  await addDoc(commentsRef(date), {
+  const docData: Record<string, any> = {
     userId,
     displayName,
     text: trimmed,
     parentId,
     createdAt: serverTimestamp(),
     reactions: {},
-  });
+  };
+  if (gifUrl) docData.gifUrl = gifUrl;
+
+  await addDoc(commentsRef(date), docData);
 }
 
 export async function deleteComment(date: string, commentId: string): Promise<void> {

@@ -11,6 +11,7 @@ import {
   addReaction,
   removeReaction,
 } from '../../lib/comments';
+import { searchGiphy, GiphyGif } from '../../lib/giphy';
 import { Card, CardTitle } from '../ui/Card';
 import { Timestamp } from 'firebase/firestore';
 
@@ -87,6 +88,13 @@ function CommentRow({
           <p className="mt-1 text-foreground text-sm whitespace-pre-wrap break-words">
             {comment.text}
           </p>
+          {comment.gifUrl && (
+            <img
+              src={comment.gifUrl}
+              alt="GIF"
+              className="mt-2 rounded-lg max-w-[200px] max-h-[150px]"
+            />
+          )}
         </div>
       </div>
 
@@ -215,6 +223,9 @@ export default function CommentsSection({ date }: CommentsSectionProps) {
   const [replyText, setReplyText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [giphyResults, setGiphyResults] = useState<GiphyGif[]>([]);
+  const [giphyLoading, setGiphyLoading] = useState(false);
+  const [giphyQuery, setGiphyQuery] = useState<string | null>(null);
   const replyInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -248,6 +259,26 @@ export default function CommentsSection({ date }: CommentsSectionProps) {
     if (!user) return;
     const value = parentId ? replyText : text;
     if (!value.trim()) return;
+
+    // Detect /giphy command
+    const giphyMatch = value.trim().match(/^\/giphy\s+(.+)$/i);
+    if (giphyMatch) {
+      const query = giphyMatch[1].trim();
+      setGiphyLoading(true);
+      setGiphyQuery(query);
+      try {
+        const results = await searchGiphy(query);
+        setGiphyResults(results);
+      } catch {
+        alert('Failed to search Giphy. Check your API key.');
+        setGiphyResults([]);
+        setGiphyQuery(null);
+      } finally {
+        setGiphyLoading(false);
+      }
+      return;
+    }
+
     setSubmitting(true);
     try {
       await addComment(date, user.uid, displayName, value, parentId);
@@ -263,6 +294,21 @@ export default function CommentsSection({ date }: CommentsSectionProps) {
       setSubmitting(false);
     }
   }, [user, date, displayName, replyText, text]);
+
+  const handleGifSelect = useCallback(async (gif: GiphyGif) => {
+    if (!user) return;
+    setSubmitting(true);
+    try {
+      await addComment(date, user.uid, displayName, `/giphy ${giphyQuery}`, null, gif.url);
+      setText('');
+      setGiphyResults([]);
+      setGiphyQuery(null);
+    } catch (e: any) {
+      alert(e.message);
+    } finally {
+      setSubmitting(false);
+    }
+  }, [user, date, displayName, giphyQuery]);
 
   const handleDelete = useCallback(async (commentId: string) => {
     try {
@@ -292,28 +338,65 @@ export default function CommentsSection({ date }: CommentsSectionProps) {
 
       {/* New comment input */}
       {user && (
-        <div className="flex gap-2 mt-4">
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Write a comment..."
-            maxLength={500}
-            rows={2}
-            className="flex-1 bg-secondary p-3 border border-border rounded-lg text-foreground text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit(null);
-              }
-            }}
-          />
-          <button
-            onClick={() => handleSubmit(null)}
-            disabled={submitting || !text.trim()}
-            className="self-end bg-primary hover:bg-primary/90 disabled:opacity-50 px-4 py-2 rounded-lg font-semibold text-primary-foreground text-sm transition-colors"
-          >
-            Post
-          </button>
+        <div className="mt-4">
+          <div className="flex gap-2">
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Write a comment... (try /giphy hello)"
+              maxLength={500}
+              rows={2}
+              className="flex-1 bg-secondary p-3 border border-border rounded-lg text-foreground text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(null);
+                }
+              }}
+            />
+            <button
+              onClick={() => handleSubmit(null)}
+              disabled={submitting || !text.trim()}
+              className="self-end bg-primary hover:bg-primary/90 disabled:opacity-50 px-4 py-2 rounded-lg font-semibold text-primary-foreground text-sm transition-colors"
+            >
+              Post
+            </button>
+          </div>
+
+          {/* Giphy picker */}
+          {giphyLoading && (
+            <p className="mt-2 text-muted-foreground text-xs">Searching Giphy...</p>
+          )}
+          {giphyResults.length > 0 && (
+            <div className="mt-2">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-muted-foreground text-xs">Pick a GIF:</span>
+                <button
+                  onClick={() => { setGiphyResults([]); setGiphyQuery(null); }}
+                  className="text-muted-foreground hover:text-foreground text-xs"
+                >
+                  Cancel
+                </button>
+              </div>
+              <div className="grid grid-cols-4 gap-1">
+                {giphyResults.map((gif) => (
+                  <button
+                    key={gif.id}
+                    onClick={() => handleGifSelect(gif)}
+                    disabled={submitting}
+                    className="overflow-hidden rounded border border-border hover:border-primary transition-colors"
+                  >
+                    <img
+                      src={gif.previewUrl || gif.url}
+                      alt={gif.title}
+                      className="w-full h-16 object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+              <p className="mt-1 text-muted-foreground text-[10px]">Powered by GIPHY</p>
+            </div>
+          )}
         </div>
       )}
 
