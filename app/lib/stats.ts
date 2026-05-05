@@ -31,6 +31,7 @@ export interface TimeSeriesPoint {
   label: string;
   avgTime: number | null;
   runningAvg: number | null;
+  totalAvg: number | null;
 }
 
 export interface AveragesOverTime {
@@ -103,7 +104,8 @@ export async function getAveragesOverTime(userId: string): Promise<AveragesOverT
   // Filter to completed only
   const completed = Object.entries(completions)
     .filter(([_, data]) => data.completed)
-    .map(([date, data]) => ({ date, time: data.completionTime }));
+    .map(([date, data]) => ({ date, time: data.completionTime }))
+    .sort((a, b) => a.date.localeCompare(b.date));
 
   const now = new Date();
 
@@ -118,9 +120,11 @@ export async function getAveragesOverTime(userId: string): Promise<AveragesOverT
       label: `${d.getMonth() + 1}/${d.getDate()}`,
       avgTime: match ? match.time : null,
       runningAvg: null,
+      totalAvg: null,
     });
   }
   computeRunningAvg(daily);
+  computeTotalAvg(daily, completed);
 
   // --- YTD: Jan of current year through current month ---
   const currentYear = now.getFullYear();
@@ -139,9 +143,11 @@ export async function getAveragesOverTime(userId: string): Promise<AveragesOverT
         ? monthTimes.reduce((sum, t) => sum + t, 0) / monthTimes.length
         : null,
       runningAvg: null,
+      totalAvg: null,
     });
   }
   computeRunningAvg(ytd);
+  computeTotalAvgMonthly(ytd, completed, currentYear, 0);
 
   // --- Monthly: trailing 12 months ---
   const monthly: TimeSeriesPoint[] = [];
@@ -159,9 +165,12 @@ export async function getAveragesOverTime(userId: string): Promise<AveragesOverT
         ? monthTimes.reduce((sum, t) => sum + t, 0) / monthTimes.length
         : null,
       runningAvg: null,
+      totalAvg: null,
     });
   }
   computeRunningAvg(monthly);
+  const startMonth = new Date(currentYear, currentMonth - 11, 1);
+  computeTotalAvgMonthly(monthly, completed, startMonth.getFullYear(), startMonth.getMonth());
 
   return { daily, ytd, monthly };
 }
@@ -177,6 +186,48 @@ function computeRunningAvg(points: TimeSeriesPoint[]): void {
       last = sum / count;
     }
     p.runningAvg = last;
+  }
+}
+
+/**
+ * Compute the total average over ALL games played up to each daily point.
+ */
+function computeTotalAvg(
+  points: TimeSeriesPoint[],
+  allCompleted: { date: string; time: number }[]
+): void {
+  // For each daily point, compute the average of all games on or before that date
+  // We derive the date from the point index (last 30 days ending today)
+  const now = new Date();
+  for (let i = 0; i < points.length; i++) {
+    const d = new Date(now);
+    d.setDate(now.getDate() - (points.length - 1 - i));
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const gamesUpToDate = allCompleted.filter(c => c.date <= dateStr);
+    if (gamesUpToDate.length > 0) {
+      points[i].totalAvg = gamesUpToDate.reduce((sum, c) => sum + c.time, 0) / gamesUpToDate.length;
+    }
+  }
+}
+
+/**
+ * Compute the total average over ALL games played up to the end of each month.
+ */
+function computeTotalAvgMonthly(
+  points: TimeSeriesPoint[],
+  allCompleted: { date: string; time: number }[],
+  startYear: number,
+  startMonth: number
+): void {
+  for (let i = 0; i < points.length; i++) {
+    const y = startYear + Math.floor((startMonth + i) / 12);
+    const m = (startMonth + i) % 12;
+    // End of this month as a date string for comparison
+    const endOfMonth = `${y}-${String(m + 1).padStart(2, '0')}-31`;
+    const gamesUpToMonth = allCompleted.filter(c => c.date <= endOfMonth);
+    if (gamesUpToMonth.length > 0) {
+      points[i].totalAvg = gamesUpToMonth.reduce((sum, c) => sum + c.time, 0) / gamesUpToMonth.length;
+    }
   }
 }
 

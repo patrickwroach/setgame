@@ -9,6 +9,7 @@ import {
   LineElement,
   Title,
   Tooltip,
+  Legend,
   Filler,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
@@ -16,7 +17,7 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import { formatTime } from '../../../lib/stats';
 import type { AveragesOverTime } from '../../../lib/stats';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 type ViewMode = '30days' | 'ytd' | '12months';
 
@@ -64,7 +65,8 @@ export default function AveragesChart({ data, isLoading }: AveragesChartProps) {
 
   const isDark = resolvedTheme === 'dark';
   const lineColor = isDark ? 'hsl(217.2, 91.2%, 59.8%)' : 'hsl(221.2, 83.2%, 53.3%)';
-  const purpleColor = isDark ? 'hsl(271, 76%, 65%)' : 'hsl(271, 76%, 53%)';
+  const periodAvgColor = isDark ? 'hsl(0, 0%, 80%)' : 'hsl(0, 0%, 0%)';
+  const totalAvgColor = isDark ? 'hsl(271, 76%, 65%)' : 'hsl(271, 76%, 53%)';
   const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
   const tickColor = isDark ? 'hsl(215, 20.2%, 65.1%)' : 'hsl(215.4, 16.3%, 46.9%)';
 
@@ -72,7 +74,7 @@ export default function AveragesChart({ data, isLoading }: AveragesChartProps) {
     labels: dataset.map(p => p.label),
     datasets: [
       {
-        label: 'Time',
+        label: 'Daily Score',
         data: dataset.map(p => p.avgTime),
         borderColor: lineColor,
         backgroundColor: lineColor,
@@ -84,15 +86,28 @@ export default function AveragesChart({ data, isLoading }: AveragesChartProps) {
         spanGaps: true,
       },
       {
-        label: 'Running Avg',
+        label: 'Period Avg',
         data: dataset.map(p => p.runningAvg),
-        borderColor: purpleColor,
-        backgroundColor: purpleColor,
-        pointBackgroundColor: purpleColor,
+        borderColor: periodAvgColor,
+        backgroundColor: periodAvgColor,
+        pointBackgroundColor: periodAvgColor,
         pointRadius: 0,
         pointHoverRadius: 4,
         borderWidth: 2,
         borderDash: [6, 3],
+        tension: 0.3,
+        spanGaps: true,
+      },
+      {
+        label: 'Total Avg',
+        data: dataset.map(p => p.totalAvg),
+        borderColor: totalAvgColor,
+        backgroundColor: totalAvgColor,
+        pointBackgroundColor: totalAvgColor,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        borderWidth: 2,
+        borderDash: [2, 2],
         tension: 0.3,
         spanGaps: true,
       },
@@ -108,7 +123,18 @@ export default function AveragesChart({ data, isLoading }: AveragesChartProps) {
         labels: {
           color: tickColor,
           usePointStyle: true,
-          pointStyle: 'line',
+          generateLabels: (chart: any) => {
+            return chart.data.datasets.map((ds: any, i: number) => ({
+              text: ds.label,
+              pointStyle: 'line',
+              strokeStyle: ds.borderColor,
+              fillStyle: ds.borderColor,
+              lineDash: ds.borderDash || [],
+              lineWidth: ds.borderWidth || 2,
+              hidden: !chart.isDatasetVisible(i),
+              datasetIndex: i,
+            }));
+          },
         },
       },
       tooltip: {
