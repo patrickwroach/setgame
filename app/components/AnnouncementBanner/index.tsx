@@ -1,17 +1,32 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getActiveAnnouncements, Announcement } from '@/app/lib/announcements';
+import { getActiveAnnouncements, getDismissedAnnouncements, dismissAnnouncement, Announcement } from '@/app/lib/announcements';
 import { getTodayDateString } from '@/app/lib/dailyPuzzle';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function AnnouncementBanner() {
+  const { user } = useAuth();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
   useEffect(() => {
+    if (!user) return;
     const today = getTodayDateString();
-    getActiveAnnouncements(today).then(setAnnouncements);
-  }, []);
+    Promise.all([
+      getActiveAnnouncements(today),
+      getDismissedAnnouncements(user.uid),
+    ]).then(([active, dismissedIds]) => {
+      setAnnouncements(active);
+      setDismissed(new Set(dismissedIds));
+    });
+  }, [user]);
+
+  function dismiss(id: string) {
+    if (!user) return;
+    setDismissed((prev) => new Set(prev).add(id));
+    dismissAnnouncement(user.uid, id);
+  }
 
   const visible = announcements.filter((a) => !dismissed.has(a.id));
   if (visible.length === 0) return null;
@@ -21,12 +36,12 @@ export default function AnnouncementBanner() {
       {visible.map((a) => (
         <div
           key={a.id}
-          className="flex justify-between items-center gap-3 bg-primary/10 p-3 border border-primary/30 rounded-lg text-foreground"
+          className="flex justify-between items-center gap-3 bg-linear-to-r from-gradient-start to-gradient-end p-3 rounded-lg text-white"
         >
           <span className="text-sm font-medium">📢 {a.message}</span>
           <button
-            onClick={() => setDismissed((prev) => new Set(prev).add(a.id))}
-            className="text-muted-foreground hover:text-foreground text-lg leading-none shrink-0"
+            onClick={() => dismiss(a.id)}
+            className="text-white/70 hover:text-white text-lg leading-none shrink-0"
             aria-label="Dismiss announcement"
           >
             ×

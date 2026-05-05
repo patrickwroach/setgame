@@ -3,6 +3,7 @@ import {
   collection,
   doc,
   getDocs,
+  getDoc,
   setDoc,
   deleteDoc,
   query,
@@ -27,14 +28,13 @@ const COLLECTION = 'announcements';
 export async function getActiveAnnouncements(todayDateStr: string): Promise<Announcement[]> {
   try {
     const ref = collection(db, COLLECTION);
-    const snapshot = await getDocs(query(ref, orderBy('createdAt', 'desc')));
+    const snapshot = await getDocs(ref);
 
     return snapshot.docs
       .map((d) => ({ id: d.id, ...d.data() } as Announcement))
       .filter((a) => a.startDate <= todayDateStr && a.endDate >= todayDateStr);
   } catch (error) {
-    const isDev = process.env.NODE_ENV === 'development';
-    if (isDev) console.error('Error fetching announcements:', error);
+    console.error('Error fetching announcements:', error);
     return [];
   }
 }
@@ -74,4 +74,28 @@ export async function saveAnnouncement(
  */
 export async function deleteAnnouncement(id: string): Promise<void> {
   await deleteDoc(doc(db, COLLECTION, id));
+}
+
+/**
+ * Get dismissed announcement IDs for a user
+ */
+export async function getDismissedAnnouncements(userId: string): Promise<string[]> {
+  try {
+    const ref = doc(db, 'announcement_dismissals', userId);
+    const snap = await getDoc(ref);
+    return snap.exists() ? (snap.data().dismissed || []) : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Dismiss an announcement for a user
+ */
+export async function dismissAnnouncement(userId: string, announcementId: string): Promise<void> {
+  const ref = doc(db, 'announcement_dismissals', userId);
+  const existing = await getDismissedAnnouncements(userId);
+  if (!existing.includes(announcementId)) {
+    await setDoc(ref, { dismissed: [...existing, announcementId] });
+  }
 }
