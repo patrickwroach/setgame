@@ -88,9 +88,16 @@ export default function SetCard({ card, isSelected, isInSet = false, setLabels =
     }
   };
 
+  const handleClick = () => {
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+    onClick();
+  };
+
   return (
     <div
-      onClick={onClick}
+      onClick={handleClick}
       className={`
         bg-card rounded-lg shadow-md cursor-pointer transition-all duration-0
         hover:shadow-xl hover:scale-105

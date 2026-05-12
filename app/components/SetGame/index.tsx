@@ -443,13 +443,14 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
           ))}
         </div>
       </div>
-       {(message.includes('✅') || message.includes('🎉') || message.includes('⚠️') || message.includes('💡')) && (
+       {(message.includes('✅') || message.includes('🎉') || message.includes('⚠️') || message.includes('💡') || message.includes('❌')) && (
           <MessageBanner
             message={message}
             type={
               message.includes('✅') ? 'success' :
               message.includes('🎉') ? 'gradient' :
               message.includes('⚠️') ? 'warning' :
+              message.includes('❌') ? 'warning' :
               message.includes('💡') ? 'info' : 'info'
             }
           />
