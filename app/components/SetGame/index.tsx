@@ -31,6 +31,7 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
   const [board, setBoard] = useState<Card[]>([]);
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const [foundSets, setFoundSets] = useState<Set<string>>(new Set());
+  const [invalidCards, setInvalidCards] = useState<number[]>([]);
   const [message, setMessage] = useState<string>('');
   const [showingSets, setShowingSets] = useState<boolean>(false);
   
@@ -345,10 +346,12 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
         }
       } else {
         setMessage('❌ Not a valid set');
+        setInvalidCards([...newSelected]);
         setTimeout(() => {
+          setInvalidCards([]);
           setSelectedCards([]);
           setMessage('');
-        }, 1000);
+        }, 800);
       }
     } else {
       setSelectedCards(newSelected);
@@ -435,6 +438,7 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
               <SetCard
                 card={card}
                 isSelected={selectedCards.includes(index)}
+                isInvalid={invalidCards.includes(index)}
                 isInSet={isCardInAnySet(index)}
                 setLabels={getCardSetLabels(index)}
                 onClick={() => handleCardClick(index)}

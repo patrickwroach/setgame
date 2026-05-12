@@ -5,12 +5,13 @@ import { Card } from '../../lib/setLogic';
 interface SetCardProps {
   card: Card;
   isSelected: boolean;
+  isInvalid?: boolean;
   isInSet?: boolean;
   setLabels?: string[];
   onClick: () => void;
 }
 
-export default function SetCard({ card, isSelected, isInSet = false, setLabels = [], onClick }: SetCardProps) {
+export default function SetCard({ card, isSelected, isInvalid = false, isInSet = false, setLabels = [], onClick }: SetCardProps) {
   const getColorClasses = () => {
     switch (card.color) {
       case 'red': return { fill: 'fill-set-red', stroke: 'stroke-set-red' };
@@ -102,6 +103,7 @@ export default function SetCard({ card, isSelected, isInSet = false, setLabels =
         bg-card rounded-lg shadow-md cursor-pointer transition-all duration-0
         hover:shadow-xl hover:scale-105
         ${isSelected ? 'ring-4 ring-primary scale-105' : ''}
+        ${isInvalid ? 'card-invalid-flash' : ''}
         ${isInSet && !isSelected ? 'ring-4 ring-accent' : ''}
         p-2 md:p-4 flex items-center justify-center w-full h-full relative
       `}
