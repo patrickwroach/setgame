@@ -6,12 +6,14 @@ interface SetCardProps {
   card: Card;
   isSelected: boolean;
   isInvalid?: boolean;
+  isDuplicate?: boolean;
+  isFading?: boolean;
   isInSet?: boolean;
   setLabels?: string[];
   onClick: () => void;
 }
 
-export default function SetCard({ card, isSelected, isInvalid = false, isInSet = false, setLabels = [], onClick }: SetCardProps) {
+export default function SetCard({ card, isSelected, isInvalid = false, isDuplicate = false, isFading = false, isInSet = false, setLabels = [], onClick }: SetCardProps) {
   const getColorClasses = () => {
     switch (card.color) {
       case 'red': return { fill: 'fill-set-red', stroke: 'stroke-set-red' };
@@ -102,8 +104,8 @@ export default function SetCard({ card, isSelected, isInvalid = false, isInSet =
       className={`
         bg-card rounded-lg shadow-md cursor-pointer transition-all duration-0
         hover:shadow-xl hover:scale-105
-        ${isSelected ? 'ring-4 ring-primary scale-105' : ''}
-        ${isInvalid ? 'card-invalid-flash' : ''}
+        ${isInvalid ? 'card-invalid-flash scale-105' : isDuplicate ? 'card-duplicate-flash scale-105' : isSelected ? 'ring-4 ring-primary scale-105' : ''}
+        ${isFading ? 'card-valid-fade' : ''}
         ${isInSet && !isSelected ? 'ring-4 ring-accent' : ''}
         p-2 md:p-4 flex items-center justify-center w-full h-full relative
       `}

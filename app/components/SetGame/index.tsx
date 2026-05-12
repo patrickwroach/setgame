@@ -32,6 +32,8 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const [foundSets, setFoundSets] = useState<Set<string>>(new Set());
   const [invalidCards, setInvalidCards] = useState<number[]>([]);
+  const [duplicateCards, setDuplicateCards] = useState<number[]>([]);
+  const [fadingCards, setFadingCards] = useState<number[]>([]);
   const [message, setMessage] = useState<string>('');
   const [showingSets, setShowingSets] = useState<boolean>(false);
   
@@ -304,8 +306,12 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
         
         if (foundSets.has(setKey)) {
           setMessage('⚠️ You already found this set!');
+          setDuplicateCards([...newSelected]);
           setTimeout(() => {
+            setDuplicateCards([]);
             setSelectedCards([]);
+          }, 200);
+          setTimeout(() => {
             setMessage(`${foundSets.size} / ${setsToFind} found`);
           }, 1500);
         } else {
@@ -334,15 +340,19 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
             setMessage(`🎉 You found all ${setsToFind} sets in ${formatTime(timeElapsed)}!`);
           } else {
             setMessage('✅ Valid Set!');
+            setFadingCards([...newSelected]);
             setTimeout(() => {
+              setFadingCards([]);
               setSelectedCards([]);
+            }, 200);
+            setTimeout(() => {
               setMessage(`${setsToFind - newFoundSets.size} sets remaining`);
-            }, 1000);
+            }, 1500);
           }
           
           setTimeout(() => {
             setSelectedCards([]);
-          }, 1000);
+          }, 200);
         }
       } else {
         setMessage('❌ Not a valid set');
@@ -350,8 +360,10 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
         setTimeout(() => {
           setInvalidCards([]);
           setSelectedCards([]);
+        }, 200);
+        setTimeout(() => {
           setMessage('');
-        }, 800);
+        }, 1500);
       }
     } else {
       setSelectedCards(newSelected);
@@ -439,6 +451,8 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
                 card={card}
                 isSelected={selectedCards.includes(index)}
                 isInvalid={invalidCards.includes(index)}
+                isDuplicate={duplicateCards.includes(index)}
+                isFading={fadingCards.includes(index)}
                 isInSet={isCardInAnySet(index)}
                 setLabels={getCardSetLabels(index)}
                 onClick={() => handleCardClick(index)}
