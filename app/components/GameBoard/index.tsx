@@ -114,12 +114,13 @@ export default function GameBoard({
     return allSets.some(set => set.includes(cardIndex));
   };
 
-  const getCardSetLabels = (cardIndex: number): string[] => {
+  const getCardSetLabels = (cardIndex: number): { label: string; found: boolean }[] => {
     if (!showingSets) return [];
-    const setLabels: string[] = [];
+    const setLabels: { label: string; found: boolean }[] = [];
     allSets.forEach((set, idx) => {
       if (set.includes(cardIndex)) {
-        setLabels.push(labels[idx % labels.length]);
+        const setKey = [...set].sort((a, b) => a - b).join(',');
+        setLabels.push({ label: labels[idx % labels.length], found: foundSets.has(setKey) });
       }
     });
     return setLabels;
@@ -169,10 +170,9 @@ export default function GameBoard({
               return (
                 <div key={idx} className={`flex items-center gap-2 text-xs ${isFound ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-accent-foreground'}`}>
                   <span className={`flex justify-center items-center rounded-full w-5 h-5 font-bold text-xs ${isFound ? 'bg-green-500 text-white' : 'bg-accent text-accent-foreground'}`}>
-                    {isFound ? '✓' : labels[idx]}
+                    {labels[idx]}
                   </span>
-                  <span>Cards at positions {set.map(i => i + 1).join(', ')}</span>
-                  {isFound && <span className="text-green-600 dark:text-green-400">— Found!</span>}
+                  <span>Cards at positions {set.map(i => i + 1).join(', ')}{isFound && ' - found!'}</span>
                 </div>
               );
             })}

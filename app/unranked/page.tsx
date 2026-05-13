@@ -3,15 +3,17 @@
 import { useState, useEffect } from 'react';
 import { Card, generateBoardWithSets } from '../lib/setLogic';
 import { useAuth } from '../contexts/AuthContext';
+import { useGame } from '../contexts/GameContext';
 import GameBoard from '@components/GameBoard';
+import MessageBanner from '@components/ui/MessageBanner';
 import Button from '@components/ui/Button';
 
 const setsToFind = 6;
 
 export default function UnrankedPage() {
   const { user } = useAuth();
+  const { showingSets, setShowingSets, setFoundSets, setTimerStartTime, setIsTimerRunning, setTimeOffset } = useGame();
   const [board, setBoard] = useState<Card[]>([]);
-  const [showingSets, setShowingSets] = useState<boolean>(false);
   const [gameStarted, setGameStarted] = useState<boolean>(false);
   const [completionMessage, setCompletionMessage] = useState<string>('');
 
@@ -20,6 +22,10 @@ export default function UnrankedPage() {
     setBoard(newBoard);
     setShowingSets(false);
     setCompletionMessage('');
+    setFoundSets(0);
+    setTimeOffset(0);
+    setTimerStartTime(Date.now());
+    setIsTimerRunning(true);
     setGameStarted(true);
   };
 
@@ -29,7 +35,13 @@ export default function UnrankedPage() {
     }
   }, [user]);
 
+  const handleSetFound = (_setKey: string, newFoundSets: Set<string>) => {
+    setFoundSets(newFoundSets.size);
+  };
+
   const handleAllSetsFound = () => {
+    setFoundSets(setsToFind);
+    setIsTimerRunning(false);
     setCompletionMessage(`🎉 You found all ${setsToFind} sets!`);
   };
 
@@ -55,36 +67,28 @@ export default function UnrankedPage() {
 
       {gameStarted && (
         <>
-          <div className="flex justify-between items-center mb-3 shrink-0">
-            <div className="flex items-center gap-3">
-              {completionMessage && (
-                <div className="font-semibold text-foreground">{completionMessage}</div>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <Button
-                onClick={() => setShowingSets(!showingSets)}
-                variant={showingSets ? 'accent' : 'muted'}
-                size="sm"
-              >
-                {showingSets ? 'Hide Sets' : 'Show All Sets'}
-              </Button>
-              <Button
-                onClick={generateNewPuzzle}
-                variant="primary"
-                size="sm"
-              >
-                New Puzzle
-              </Button>
-            </div>
-          </div>
-
           <GameBoard
             board={board}
             setsToFind={setsToFind}
             showingSets={showingSets}
+            onSetFound={handleSetFound}
             onAllSetsFound={handleAllSetsFound}
           />
+
+          {completionMessage && (
+            <MessageBanner message={completionMessage} type="gradient" />
+          )}
+
+          <div className="fixed right-4 bottom-4">
+            <Button
+              onClick={generateNewPuzzle}
+              variant="primary"
+              size="lg"
+              className="shadow-lg rounded-full"
+            >
+              New Puzzle
+            </Button>
+          </div>
         </>
       )}
     </div>

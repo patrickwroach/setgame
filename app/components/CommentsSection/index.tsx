@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { getUserDataByUid } from '../../lib/users';
 import {
   Comment,
   REACTION_EMOJIS,
@@ -252,9 +253,6 @@ export default function CommentsSection({ date }: CommentsSectionProps) {
     }
   });
 
-  const displayName =
-    user?.displayName || user?.email?.split('@')[0] || 'User';
-
   const handleSubmit = useCallback(async (parentId: string | null = null) => {
     if (!user) return;
     const value = parentId ? replyText : text;
@@ -281,7 +279,9 @@ export default function CommentsSection({ date }: CommentsSectionProps) {
 
     setSubmitting(true);
     try {
-      await addComment(date, user.uid, displayName, value, parentId);
+      const userData = await getUserDataByUid(user.uid);
+      const name = userData?.displayName || user.displayName || user.email?.split('@')[0] || 'User';
+      await addComment(date, user.uid, name, value, parentId);
       if (parentId) {
         setReplyText('');
         setReplyTo(null);
@@ -293,13 +293,15 @@ export default function CommentsSection({ date }: CommentsSectionProps) {
     } finally {
       setSubmitting(false);
     }
-  }, [user, date, displayName, replyText, text]);
+  }, [user, date, replyText, text]);
 
   const handleGifSelect = useCallback(async (gif: GiphyGif) => {
     if (!user) return;
     setSubmitting(true);
     try {
-      await addComment(date, user.uid, displayName, `/giphy ${giphyQuery}`, null, gif.url);
+      const userData = await getUserDataByUid(user.uid);
+      const name = userData?.displayName || user.displayName || user.email?.split('@')[0] || 'User';
+      await addComment(date, user.uid, name, `/giphy ${giphyQuery}`, null, gif.url);
       setText('');
       setGiphyResults([]);
       setGiphyQuery(null);
@@ -308,7 +310,7 @@ export default function CommentsSection({ date }: CommentsSectionProps) {
     } finally {
       setSubmitting(false);
     }
-  }, [user, date, displayName, giphyQuery]);
+  }, [user, date, giphyQuery]);
 
   const handleDelete = useCallback(async (commentId: string) => {
     try {

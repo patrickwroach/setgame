@@ -2,6 +2,11 @@
 
 import { Card } from '../../lib/setLogic';
 
+export interface SetLabel {
+  label: string;
+  found: boolean;
+}
+
 interface SetCardProps {
   card: Card;
   isSelected: boolean;
@@ -9,7 +14,7 @@ interface SetCardProps {
   isDuplicate?: boolean;
   isFading?: boolean;
   isInSet?: boolean;
-  setLabels?: string[];
+  setLabels?: SetLabel[];
   onClick: () => void;
 }
 
@@ -130,12 +135,12 @@ export default function SetCard({ card, isSelected, isInvalid = false, isDuplica
       
       {setLabels.length > 0 && (
         <div className="right-1 bottom-1 absolute flex gap-0.5">
-          {setLabels.map((label, idx) => (
+          {setLabels.map((item, idx) => (
             <div
               key={idx}
-              className="flex justify-center items-center bg-accent shadow-md rounded-full w-5 h-5 font-bold text-xs text-accent-foreground"
+              className={`flex justify-center items-center shadow-md rounded-full w-5 h-5 font-bold text-xs ${item.found ? 'bg-green-500 text-white' : 'bg-accent text-accent-foreground'}`}
             >
-              {label}
+              {item.label}
             </div>
           ))}
         </div>
