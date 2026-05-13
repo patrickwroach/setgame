@@ -163,14 +163,19 @@ export default function GameBoard({
         <div className="bg-accent/20 mb-3 p-3 border border-accent rounded-lg shrink-0">
           <div className="mb-2 font-semibold text-sm text-accent-foreground">All Sets on Board:</div>
           <div className="space-y-1">
-            {allSets.map((set, idx) => (
-              <div key={idx} className="flex items-center gap-2 text-xs text-accent-foreground">
-                <span className="flex justify-center items-center bg-accent rounded-full w-5 h-5 font-bold text-xs text-accent-foreground">
-                  {labels[idx]}
-                </span>
-                <span>Cards at positions {set.map(i => i + 1).join(', ')}</span>
-              </div>
-            ))}
+            {allSets.map((set, idx) => {
+              const setKey = [...set].sort((a, b) => a - b).join(',');
+              const isFound = foundSets.has(setKey);
+              return (
+                <div key={idx} className={`flex items-center gap-2 text-xs ${isFound ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-accent-foreground'}`}>
+                  <span className={`flex justify-center items-center rounded-full w-5 h-5 font-bold text-xs ${isFound ? 'bg-green-500 text-white' : 'bg-accent text-accent-foreground'}`}>
+                    {isFound ? '✓' : labels[idx]}
+                  </span>
+                  <span>Cards at positions {set.map(i => i + 1).join(', ')}</span>
+                  {isFound && <span className="text-green-600 dark:text-green-400">— Found!</span>}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
