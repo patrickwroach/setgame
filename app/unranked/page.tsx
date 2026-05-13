@@ -1,33 +1,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, isValidSet, findAllSets, generateBoardWithSets } from '../lib/setLogic';
+import { Card, generateBoardWithSets } from '../lib/setLogic';
 import { useAuth } from '../contexts/AuthContext';
-import SetCard from '@components/SetCard';
-import MessageBanner from '@components/ui/MessageBanner';
+import GameBoard from '@components/GameBoard';
 import Button from '@components/ui/Button';
 
 const setsToFind = 6;
-const labels = ['A', 'B', 'C', 'D','E', 'F'];
 
 export default function UnrankedPage() {
   const { user } = useAuth();
   const [board, setBoard] = useState<Card[]>([]);
-  const [selectedCards, setSelectedCards] = useState<number[]>([]);
-  const [foundSets, setFoundSets] = useState<Set<string>>(new Set());
-  const [message, setMessage] = useState<string>('');
   const [showingSets, setShowingSets] = useState<boolean>(false);
-  const [allSets, setAllSets] = useState<number[][]>([]);
   const [gameStarted, setGameStarted] = useState<boolean>(false);
+  const [completionMessage, setCompletionMessage] = useState<string>('');
 
   const generateNewPuzzle = () => {
     const newBoard = generateBoardWithSets(setsToFind, 12);
     setBoard(newBoard);
-    setSelectedCards([]);
-    setFoundSets(new Set());
     setShowingSets(false);
-    setAllSets(findAllSets(newBoard));
-    setMessage('');
+    setCompletionMessage('');
     setGameStarted(true);
   };
 
@@ -37,79 +29,8 @@ export default function UnrankedPage() {
     }
   }, [user]);
 
-  const getSetKey = (indices: number[]) => {
-    return indices.sort((a, b) => a - b).join(',');
-  };
-
-  const handleCardClick = async (index: number) => {
-    if (!user) {
-      return;
-    }
-
-    if (selectedCards.includes(index)) {
-      setSelectedCards(selectedCards.filter(i => i !== index));
-      return;
-    }
-
-    const newSelected = [...selectedCards, index];
-
-    if (newSelected.length === 3) {
-      const cards = newSelected.map(i => board[i]);
-      if (isValidSet(cards[0], cards[1], cards[2])) {
-        const setKey = getSetKey(newSelected);
-        
-        if (foundSets.has(setKey)) {
-          setMessage('⚠️ You already found this set!');
-          setTimeout(() => {
-            setSelectedCards([]);
-            setMessage(`${foundSets.size} / ${setsToFind} found`);
-          }, 1500);
-        } else {
-          const newFoundSets = new Set(foundSets);
-          newFoundSets.add(setKey);
-          setFoundSets(newFoundSets);
-          
-          if (newFoundSets.size === setsToFind) {
-            setMessage(`🎉 You found all ${setsToFind} sets!`);
-          } else {
-            setMessage('✅ Valid Set!');
-            setTimeout(() => {
-              setSelectedCards([]);
-              setMessage(`${setsToFind - newFoundSets.size} sets remaining`);
-            }, 1000);
-          }
-          
-          setTimeout(() => {
-            setSelectedCards([]);
-          }, 1000);
-        }
-      } else {
-        setMessage('❌ Not a valid set');
-        setTimeout(() => {
-          setSelectedCards([]);
-          setMessage('');
-        }, 1000);
-      }
-    } else {
-      setSelectedCards(newSelected);
-      setMessage('');
-    }
-  };
-
-  const isCardInAnySet = (cardIndex: number): boolean => {
-    if (!showingSets) return false;
-    return allSets.some(set => set.includes(cardIndex));
-  };
-
-  const getCardSetLabels = (cardIndex: number): string[] => {
-    if (!showingSets) return [];
-    const setLabels: string[] = [];
-    allSets.forEach((set, idx) => {
-      if (set.includes(cardIndex)) {
-        setLabels.push(labels[idx % labels.length]);
-      }
-    });
-    return setLabels;
+  const handleAllSetsFound = () => {
+    setCompletionMessage(`🎉 You found all ${setsToFind} sets!`);
   };
 
   return (
@@ -136,9 +57,9 @@ export default function UnrankedPage() {
         <>
           <div className="flex justify-between items-center mb-3 shrink-0">
             <div className="flex items-center gap-3">
-              <div className="font-semibold text-foreground">
-                {foundSets.size} / {setsToFind} sets found
-              </div>
+              {completionMessage && (
+                <div className="font-semibold text-foreground">{completionMessage}</div>
+              )}
             </div>
             <div className="flex gap-2">
               <Button
@@ -158,48 +79,12 @@ export default function UnrankedPage() {
             </div>
           </div>
 
-          {(message.includes('✅') || message.includes('🎉') || message.includes('⚠️')) && (
-            <MessageBanner
-              message={message}
-              type={
-                message.includes('✅') ? 'success' :
-                message.includes('🎉') ? 'gradient' :
-                message.includes('⚠️') ? 'warning' : 'info'
-              }
-            />
-          )}
-
-          {showingSets && (
-            <div className="bg-accent/20 mb-3 p-3 border border-accent rounded-lg shrink-0">
-              <div className="mb-2 font-semibold text-sm text-accent-foreground">All Sets on Board:</div>
-              <div className="space-y-1">
-                {allSets.map((set, idx) => (
-                  <div key={idx} className="flex items-center gap-2 text-xs text-accent-foreground">
-                    <span className="flex justify-center items-center bg-accent rounded-full w-5 h-5 font-bold text-xs text-accent-foreground">
-                      {labels[idx]}
-                    </span>
-                    <span>Cards at positions {set.map(i => i + 1).join(', ')}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="flex flex-1 justify-center items-center p-2 min-h-0">
-            <div className="gap-2 sm:gap-3 grid grid-cols-3 md:grid-cols-4 grid-rows-4 md:grid-rows-3 w-full max-w-[1200px] h-full max-h-[calc(100vh-80px)] md:aspect-960/494">
-              {board.map((card, index) => (
-                <div key={index} className="w-full aspect-square md:aspect-3/2">
-                  <SetCard
-                    card={card}
-                    isSelected={selectedCards.includes(index)}
-                    isInSet={isCardInAnySet(index)}
-                    setLabels={getCardSetLabels(index)}
-                    onClick={() => handleCardClick(index)}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+          <GameBoard
+            board={board}
+            setsToFind={setsToFind}
+            showingSets={showingSets}
+            onAllSetsFound={handleAllSetsFound}
+          />
         </>
       )}
     </div>
