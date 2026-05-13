@@ -168,8 +168,8 @@ export default function GameBoard({
               const setKey = [...set].sort((a, b) => a - b).join(',');
               const isFound = foundSets.has(setKey);
               return (
-                <div key={idx} className={`flex items-center gap-2 text-xs ${isFound ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-accent-foreground'}`}>
-                  <span className={`flex justify-center items-center rounded-full w-5 h-5 font-bold text-xs ${isFound ? 'bg-green-500 text-white' : 'bg-accent text-accent-foreground'}`}>
+                <div key={idx} className={`flex items-center gap-2 text-xs ${isFound ? 'text-success font-semibold' : 'text-accent-foreground'}`}>
+                  <span className={`flex justify-center items-center rounded-full w-5 h-5 font-bold text-xs ${isFound ? 'bg-success text-success-foreground' : 'bg-accent text-accent-foreground'}`}>
                     {labels[idx]}
                   </span>
                   <span>Cards at positions {set.map(i => i + 1).join(', ')}{isFound && ' - found!'}</span>

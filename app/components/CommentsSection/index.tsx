@@ -139,7 +139,7 @@ function CommentRow({
               <span className="ml-2 text-xs">
                 <button
                   onClick={() => onDelete(comment.id)}
-                  className="mr-1 text-red-500 hover:text-red-700"
+                  className="mr-1 text-destructive hover:text-destructive/80"
                 >
                   Confirm
                 </button>
@@ -153,7 +153,7 @@ function CommentRow({
             ) : (
               <button
                 onClick={() => setConfirmDelete(comment.id)}
-                className="ml-2 text-muted-foreground hover:text-red-500 text-xs transition-colors"
+                className="ml-2 text-muted-foreground hover:text-destructive text-xs transition-colors"
               >
                 Delete
               </button>

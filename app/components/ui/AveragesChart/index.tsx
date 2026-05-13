@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -35,6 +35,25 @@ const VIEW_LABELS: Record<ViewMode, string> = {
 export default function AveragesChart({ data, isLoading }: AveragesChartProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('30days');
   const { resolvedTheme } = useTheme();
+  const [chartColors, setChartColors] = useState({
+    line: '',
+    periodAvg: '',
+    totalAvg: '',
+    grid: '',
+    tick: '',
+  });
+
+  // Read colors from CSS custom properties so chart stays in sync with theme tokens
+  useEffect(() => {
+    const styles = getComputedStyle(document.documentElement);
+    setChartColors({
+      line: styles.getPropertyValue('--color-primary').trim(),
+      periodAvg: styles.getPropertyValue('--color-foreground').trim(),
+      totalAvg: styles.getPropertyValue('--color-set-purple').trim(),
+      grid: resolvedTheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+      tick: styles.getPropertyValue('--color-muted-foreground').trim(),
+    });
+  }, [resolvedTheme]);
 
   if (isLoading) {
     return (
@@ -64,11 +83,11 @@ export default function AveragesChart({ data, isLoading }: AveragesChartProps) {
   }
 
   const isDark = resolvedTheme === 'dark';
-  const lineColor = isDark ? 'hsl(217.2, 91.2%, 59.8%)' : 'hsl(221.2, 83.2%, 53.3%)';
-  const periodAvgColor = isDark ? 'hsl(0, 0%, 80%)' : 'hsl(0, 0%, 0%)';
-  const totalAvgColor = isDark ? 'hsl(271, 76%, 65%)' : 'hsl(271, 76%, 53%)';
-  const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-  const tickColor = isDark ? 'hsl(215, 20.2%, 65.1%)' : 'hsl(215.4, 16.3%, 46.9%)';
+  const lineColor = chartColors.line;
+  const periodAvgColor = chartColors.periodAvg;
+  const totalAvgColor = chartColors.totalAvg;
+  const gridColor = chartColors.grid;
+  const tickColor = chartColors.tick;
 
   const chartData = {
     labels: dataset.map(p => p.label),

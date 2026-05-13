@@ -36,12 +36,12 @@ export default function AnnouncementBanner() {
       {visible.map((a) => (
         <div
           key={a.id}
-          className="flex justify-between items-center gap-3 bg-linear-to-r from-gradient-start to-gradient-end p-3 rounded-lg text-white"
+          className="flex justify-between items-center gap-3 bg-linear-to-r from-gradient-start to-gradient-end p-3 rounded-lg text-on-gradient"
         >
           <span className="text-sm font-medium">📢 {a.message}</span>
           <button
             onClick={() => dismiss(a.id)}
-            className="text-white/70 hover:text-white text-lg leading-none shrink-0"
+            className="text-on-gradient-muted hover:text-on-gradient text-lg leading-none shrink-0"
             aria-label="Dismiss announcement"
           >
             ×

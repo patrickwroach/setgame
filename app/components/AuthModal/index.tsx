@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import Modal from '@components/ui/Modal';
+import Button from '@components/ui/Button';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -75,7 +77,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
   };
 
   return (
-    <div className="z-50 fixed inset-0 flex justify-center items-center bg-black bg-opacity-60 p-4">
+    <Modal>
       <div className="bg-card shadow-2xl p-8 rounded-2xl w-full max-w-md">
         <div className="flex justify-between items-center mb-6">
           <h2 className="font-bold text-foreground text-3xl">
@@ -117,7 +119,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
 
           {isSignUp && (
             <div>
-              <label className="block mb-1 font-medium text-foreground text-sm">
+              <label className="input-label">
                 Invite Code (required for email or google sign ups)
               </label>
               <input
@@ -125,46 +127,48 @@ export default function AuthModal({ onClose }: AuthModalProps) {
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
                 placeholder="ALPHA-123"
-                className="bg-background px-4 py-2 border border-input focus:border-transparent rounded-lg focus:ring-2 focus:ring-ring w-full font-mono text-foreground"
+                className="input font-mono"
                 required
               />
             </div>
           )}
           <hr className="my-4 border-border"/>
           <div>
-            <label className="block mb-1 font-medium text-foreground text-sm">
+            <label className="input-label">
               Email
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-background px-4 py-2 border border-input focus:border-transparent rounded-lg focus:ring-2 focus:ring-ring w-full text-foreground"
+              className="input"
               required
             />
           </div>
 
           <div>
-            <label className="block mb-1 font-medium text-foreground text-sm">
+            <label className="input-label">
               Password
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="bg-background px-4 py-2 border border-input focus:border-transparent rounded-lg focus:ring-2 focus:ring-ring w-full text-foreground"
+              className="input"
               required
               minLength={6}
             />
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={loading}
-            className="bg-primary hover:bg-primary/90 disabled:opacity-50 py-3 rounded-lg w-full font-bold text-primary-foreground transition-colors"
+            variant="primary"
+            size="lg"
+            className="w-full"
           >
             {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
-          </button>
+          </Button>
         </form>
 
         <div className="mt-6 text-center">
@@ -197,6 +201,6 @@ export default function AuthModal({ onClose }: AuthModalProps) {
           <span>{isSignUp ? 'Sign up with Google' : 'Sign in with Google'}</span>
         </button>
       </div>
-    </div>
+    </Modal>
   );
 }

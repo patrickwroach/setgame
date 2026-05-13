@@ -16,6 +16,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import GameBoard from '@components/GameBoard';
 import MessageBanner from '@components/ui/MessageBanner';
 import Button from '@components/ui/Button';
+import Modal from '@components/ui/Modal';
 
 interface SetGameProps {
   showingSets: boolean;
@@ -286,7 +287,7 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
     <div className="flex flex-col flex-1 px-4 py-4 overflow-hidden page-fade-in">
       {/* Resume Modal */}
       {showResumeModal && savedProgress && (
-        <div className="z-50 fixed inset-0 flex justify-center items-center bg-black bg-opacity-60 p-4">
+        <Modal>
           <div className="bg-card shadow-2xl p-8 rounded-2xl w-full max-w-md">
             <div className="mb-6">
               <h2 className="mb-2 font-bold text-foreground text-3xl">Resume Puzzle?</h2>
@@ -313,7 +314,7 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
               Resume Game
             </Button>
           </div>
-        </div>
+        </Modal>
       )}
 
       {!gameStarted && !todayCompleted && !showResumeModal && (

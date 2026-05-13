@@ -15,6 +15,7 @@ import Button from '@components/ui/Button';
 import Input from '@components/ui/Input';
 import NavigationArrows from '@components/ui/NavigationArrows';
 import Loading from '@components/ui/Loading';
+import Modal from '@components/ui/Modal';
 import { getWeekBounds, formatWeekRange, launchDate as LAUNCH_DATE } from '../lib/dateUtils';
 import { getAllAnnouncements, saveAnnouncement, deleteAnnouncement, Announcement } from '../lib/announcements';
 
@@ -200,16 +201,16 @@ export default function ProfilePage() {
         <div className="gradient-box">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="mb-1 font-bold text-white text-xl">Today's Time</h2>
-              <p className="text-white/80 text-sm">{todayDateStr}</p>
+              <h2 className="mb-1 font-bold text-on-gradient text-xl">Today's Time</h2>
+              <p className="text-on-gradient-muted text-sm">{todayDateStr}</p>
             </div>
-            <div className="font-bold text-white text-4xl">
+            <div className="font-bold text-on-gradient text-4xl">
               {todayCompletion ? (
-                <span className={todayCompletion.completed ? 'text-success-foreground' : 'text-orange-200'}>
+                <span className={todayCompletion.completed ? 'text-success-foreground' : 'text-warning'}>
                   {todayCompletion.completed ? formatTime(todayCompletion.time) : 'Incomplete'}
                 </span>
               ) : (
-                <span className="text-white/50">-</span>
+                <span className="text-on-gradient-muted">-</span>
               )}
             </div>
           </div>
@@ -229,7 +230,7 @@ export default function ProfilePage() {
                 </div>
                 <span className={`font-mono ${
                   day.completion 
-                    ? day.completion.completed ? 'text-success' : 'text-orange-600'
+                    ? day.completion.completed ? 'text-success' : 'text-warning'
                     : 'text-muted-foreground'
                 }`}>
                   {day.completion 
@@ -284,7 +285,7 @@ export default function ProfilePage() {
           <StatCard
             label="Did Not Complete"
             value={stats.didNotCompletes}
-            valueColor="text-orange-600"
+            valueColor="text-warning"
           />
           <StatCard
             label="Best Time"
@@ -299,7 +300,7 @@ export default function ProfilePage() {
           <StatCard
             label="Days with Best Time"
             value={stats.daysWithBestTime ?? 0}
-            valueColor="text-yellow-600"
+            valueColor="text-rank-gold"
           />
         </div>
 
@@ -411,7 +412,7 @@ export default function ProfilePage() {
         )}
 
         {showCode && (
-          <div className="z-50 fixed inset-0 flex justify-center items-center bg-black bg-opacity-60 p-4">
+          <Modal onClose={() => setShowCode(false)}>
             <Card className="shadow-2xl p-8 w-full max-w-md">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="font-bold text-foreground text-3xl">Invite Code</h2>
@@ -426,7 +427,7 @@ export default function ProfilePage() {
               <div className="bg-primary/10 p-6 border-2 border-primary rounded-lg">
                 <div className="mb-3 font-medium text-foreground text-sm">Share this code:</div>
                 <div className="mb-4 font-mono font-bold text-primary text-4xl text-center">{inviteCode}</div>
-                <div className="mb-4 text-orange-600 text-sm text-center">
+                <div className="mb-4 text-warning text-sm text-center">
                   ⏱️ Expires at {codeExpiry}
                 </div>
                 <Button
@@ -442,7 +443,7 @@ export default function ProfilePage() {
                 </Button>
               </div>
             </Card>
-          </div>
+          </Modal>
         )}
 
         <Card>

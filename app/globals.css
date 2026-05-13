@@ -1,14 +1,13 @@
 @import "tailwindcss";
 
-@source "../../app/**/*.{js,ts,jsx,tsx,mdx}";
-@source "../../pages/**/*.{js,ts,jsx,tsx,mdx}";
-@source "../../components/**/*.{js,ts,jsx,tsx,mdx}";
+@source "../app/**/*.{js,ts,jsx,tsx,mdx}";
 
 :root {
   color-scheme: light dark;
 }
 
 @theme {
+  /* ─── Surface Colors ─── */
   --color-background: light-dark(hsl(0 0% 100%), hsl(222.2 84% 4.9%));
   --color-foreground: light-dark(hsl(222.2 84% 4.9%), hsl(210 40% 98%));
   
@@ -18,6 +17,7 @@
   --color-popover: light-dark(hsl(0 0% 100%), hsl(222.2 84% 4.9%));
   --color-popover-foreground: light-dark(hsl(222.2 84% 4.9%), hsl(210 40% 98%));
   
+  /* ─── Brand Colors ─── */
   --color-primary: light-dark(hsl(221.2 83.2% 53.3%), hsl(217.2 91.2% 59.8%));
   --color-primary-foreground: light-dark(hsl(210 40% 98%), hsl(222.2 47.4% 11.2%));
   
@@ -33,23 +33,42 @@
   --color-accent: light-dark(hsl(210 40% 96.1%), hsl(217.2 32.6% 17.5%));
   --color-accent-foreground: light-dark(hsl(222.2 47.4% 11.2%), hsl(210 40% 98%));
   
+  /* ─── Semantic Status Colors ─── */
   --color-destructive: light-dark(hsl(0 84.2% 60.2%), hsl(0 62.8% 30.6%));
-  --color-destructive-foreground: light-dark(hsl(222.2 47.4% 11.2%), hsl(210 40% 98%));
-  
-  --color-border: light-dark(hsl(214.3 31.8% 91.4%), hsl(217.2 32.6% 17.5%));
-  --color-input: light-dark(hsl(214.3 31.8% 91.4%), hsl(217.2 32.6% 17.5%));
-  --color-ring: light-dark(hsl(221.2 83.2% 53.3%), hsl(224.3 76.3% 48%));
+  --color-destructive-foreground: light-dark(hsl(210 40% 98%), hsl(210 40% 98%));
   
   --color-success: light-dark(hsl(142 76% 36%), hsl(142 71% 45%));
   --color-success-foreground: light-dark(hsl(0 0% 100%), hsl(0 0% 100%));
+
+  --color-warning: light-dark(hsl(25 95% 53%), hsl(25 95% 63%));
+  --color-warning-foreground: light-dark(hsl(0 0% 100%), hsl(0 0% 100%));
+
+  /* ─── Rank/Medal Colors ─── */
+  --color-rank-gold: light-dark(hsl(48 96% 53%), hsl(48 96% 53%));
+  --color-rank-gold-foreground: light-dark(hsl(48 80% 15%), hsl(48 80% 15%));
+  --color-rank-silver: light-dark(hsl(210 40% 96.1%), hsl(217.2 32.6% 17.5%));
+  --color-rank-silver-foreground: light-dark(hsl(215.4 16.3% 46.9%), hsl(215 20.2% 65.1%));
+  --color-rank-bronze: light-dark(hsl(25 75% 60%), hsl(25 75% 60%));
+  --color-rank-bronze-foreground: light-dark(hsl(25 80% 15%), hsl(25 80% 15%));
   
+  /* ─── UI Chrome ─── */
+  --color-border: light-dark(hsl(214.3 31.8% 91.4%), hsl(217.2 32.6% 17.5%));
+  --color-input: light-dark(hsl(214.3 31.8% 91.4%), hsl(217.2 32.6% 17.5%));
+  --color-ring: light-dark(hsl(221.2 83.2% 53.3%), hsl(224.3 76.3% 48%));
+  --color-overlay: light-dark(hsl(0 0% 0% / 0.6), hsl(0 0% 0% / 0.7));
+  
+  /* ─── Gradient ─── */
   --color-gradient-start: light-dark(hsl(217 91% 60%), hsl(217 91% 45%));
   --color-gradient-end: light-dark(hsl(271 76% 53%), hsl(271 76% 40%));
+  --color-on-gradient: light-dark(hsl(0 0% 100%), hsl(0 0% 100%));
+  --color-on-gradient-muted: light-dark(hsl(0 0% 100% / 0.8), hsl(0 0% 100% / 0.8));
   
-  --color-set-red: 0 91% 59%;
-  --color-set-green: 142 76% 36%;
-  --color-set-purple: 271 76% 53%;
-  
+  /* ─── Game Card Colors (Set-specific) ─── */
+  --color-set-red: light-dark(hsl(0 91% 59%), hsl(0 91% 70%));
+  --color-set-green: light-dark(hsl(142 76% 36%), hsl(142 76% 55%));
+  --color-set-purple: light-dark(hsl(271 76% 53%), hsl(271 76% 65%));
+
+  /* ─── Shadows ─── */
   --shadow-sm: 0 2px 4px 0 rgb(0 0 0 / 0.15);
   --shadow: 0 3px 6px 0 rgb(0 0 0 / 0.2), 0 2px 4px -1px rgb(0 0 0 / 0.15);
   --shadow-md: 0 6px 10px -1px rgb(0 0 0 / 0.25), 0 4px 6px -2px rgb(0 0 0 / 0.2);
@@ -57,77 +76,67 @@
   --shadow-xl: 0 24px 30px -5px rgb(0 0 0 / 0.35), 0 10px 15px -6px rgb(0 0 0 / 0.3);
   --shadow-2xl: 0 30px 60px -12px rgb(0 0 0 / 0.4);
   
+  /* ─── Radii ─── */
   --radius-lg: 0.5rem;
   --radius-md: calc(0.5rem - 2px);
   --radius-sm: calc(0.5rem - 4px);
+
+  /* ─── Typography ─── */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
 }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: var(--color-background);
-  color: var(--color-foreground);
-}
-
-.fill-set-red {
-  fill: hsl(var(--color-set-red));
-}
-
-.fill-set-green {
-  fill: hsl(var(--color-set-green));
-}
-
-.fill-set-purple {
-  fill: hsl(var(--color-set-purple));
-}
-
-.stroke-set-red {
-  stroke: hsl(var(--color-set-red));
-}
-
-.stroke-set-green {
-  stroke: hsl(var(--color-set-green));
-}
-
-.stroke-set-purple {
-  stroke: hsl(var(--color-set-purple));
-}
-
-.text-set-purple {
-  color: hsl(var(--color-set-purple));
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-set-red: 0 91% 70%;
-    --color-set-green: 142 76% 55%;
-    --color-set-purple: 271 76% 65%;
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
   }
-}
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
+  .fill-set-red {
+    fill: var(--color-set-red);
   }
-  to {
-    opacity: 1;
-  }
-}
 
-.page-fade-in {
-  animation: fadeIn 0.3s ease-in;
+  .fill-set-green {
+    fill: var(--color-set-green);
+  }
+
+  .fill-set-purple {
+    fill: var(--color-set-purple);
+  }
+
+  .stroke-set-red {
+    stroke: var(--color-set-red);
+  }
+
+  .stroke-set-green {
+    stroke: var(--color-set-green);
+  }
+
+  .stroke-set-purple {
+    stroke: var(--color-set-purple);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .page-fade-in {
+    animation: fadeIn 0.3s ease-in;
+  }
 }
 
 /* Component Styles */
-@import "./components/SetCard/styles.css";
-@import "./components/ui/Button/styles.css";
-@import "./components/ui/Card/styles.css";
-@import "./components/ui/StatCard/styles.css";
-@import "./components/ui/Input/styles.css";
-@import "./components/ui/MessageBanner/styles.css";
-@import "./components/ui/Loading/styles.css";
-@import "./components/ui/EmptyState/styles.css";
-@import "./components/Navigation/styles.css";
+@layer components {
+  @import "./components/SetCard/styles.css";
+  @import "./components/ui/Button/styles.css";
+  @import "./components/ui/Card/styles.css";
+  @import "./components/ui/StatCard/styles.css";
+  @import "./components/ui/Input/styles.css";
+  @import "./components/ui/MessageBanner/styles.css";
+  @import "./components/ui/Loading/styles.css";
+  @import "./components/ui/EmptyState/styles.css";
+}

@@ -43,7 +43,7 @@ export default function Timer({ isRunning, startTime, timeOffset = 0, onTimeUpda
   return (
     <div className="flex items-center gap-2">
       <svg
-        className="w-5 h-5 text-gray-600"
+        className="w-5 h-5 text-muted-foreground"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -55,7 +55,7 @@ export default function Timer({ isRunning, startTime, timeOffset = 0, onTimeUpda
           d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
         />
       </svg>
-      <span className="font-semibold tabular-nums text-gray-700 text-lg">
+      <span className="font-semibold tabular-nums text-foreground text-lg">
         {formatTime(elapsedSeconds)}
       </span>
     </div>

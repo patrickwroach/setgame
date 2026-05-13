@@ -138,7 +138,7 @@ export default function SetCard({ card, isSelected, isInvalid = false, isDuplica
           {setLabels.map((item, idx) => (
             <div
               key={idx}
-              className={`flex justify-center items-center shadow-md rounded-full w-5 h-5 font-bold text-xs ${item.found ? 'bg-green-500 text-white' : 'bg-accent text-accent-foreground'}`}
+              className={`flex justify-center items-center shadow-md rounded-full w-5 h-5 font-bold text-xs ${item.found ? 'bg-success text-success-foreground' : 'bg-accent text-accent-foreground'}`}
             >
               {item.label}
             </div>

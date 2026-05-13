@@ -11,8 +11,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     return (
       <main className="flex justify-center items-center min-h-screen">
         <div className="text-center">
-          <div className="inline-block border-4 border-blue-600 border-t-transparent rounded-full w-12 h-12 animate-spin"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="inline-block border-4 border-primary border-t-transparent rounded-full w-12 h-12 animate-spin"></div>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
         </div>
       </main>
     );

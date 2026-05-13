@@ -8,6 +8,7 @@ import EmptyState from '@components/ui/EmptyState';
 import LeaderboardEntry from '@components/ui/LeaderboardEntry';
 import NavigationArrows from '@components/ui/NavigationArrows';
 import Loading from '@components/ui/Loading';
+import { Card } from '@components/ui/Card';
 import { getWeekBounds, formatWeekRange, formatDate, getDateForOffset, launchDate } from '../lib/dateUtils';
 import CommentsSection from '@components/CommentsSection';
 
@@ -102,7 +103,8 @@ export default function RankingsPage() {
   return (
     <div className="space-y-6 mx-auto p-6 max-w-6xl page-fade-in">
       {/* Tab Navigation */}
-      <div className="flex gap-2 bg-card shadow p-2 rounded-lg">
+      <Card className="p-2">
+        <div className="flex gap-2">
         <button
           onClick={() => setActiveTab('daily')}
           className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-colors ${
@@ -119,11 +121,12 @@ export default function RankingsPage() {
         >
           Weekly Leaderboard
         </button>
-      </div>
+        </div>
+      </Card>
 
       {/* Daily Leaderboard */}
       {activeTab === 'daily' && (
-        <div className="bg-card shadow p-6 rounded-lg">
+        <Card>
           <div className="mb-6">
             <h2 className="font-bold text-foreground text-2xl">Daily Leaderboard</h2>
           </div>
@@ -154,12 +157,12 @@ export default function RankingsPage() {
             canGoForward={canGoForward}
             label={formatDate(currentDate)}
           />
-        </div>
+        </Card>
       )}
 
       {/* Weekly Leaderboard */}
       {activeTab === 'weekly' && (
-        <div className="bg-card shadow p-6 rounded-lg">
+        <Card>
           <div className="mb-6">
             <h2 className="font-bold text-foreground text-2xl">Weekly Leaderboard</h2>
           </div>
@@ -191,7 +194,7 @@ export default function RankingsPage() {
             canGoForward={canGoForward}
             label={formatWeekRange(getWeekBounds(weekOffset).weekStart, getWeekBounds(weekOffset).weekEnd)}
           />
-        </div>
+        </Card>
       )}
 
       {/* Comments Section — shared across daily/weekly tabs, keyed by daily date */}
