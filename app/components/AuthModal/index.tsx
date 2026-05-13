@@ -79,16 +79,10 @@ export default function AuthModal({ onClose }: AuthModalProps) {
   return (
     <Modal>
       <div className="bg-card shadow-2xl p-8 rounded-2xl w-full max-w-md">
-        <div className="flex justify-between items-center mb-6">
+        <div className="mb-6">
           <h2 className="font-bold text-foreground text-3xl">
             {isSignUp ? 'Sign Up' : 'Sign In'}
           </h2>
-          <button
-            onClick={onClose}
-            className="font-light text-muted-foreground hover:text-foreground text-3xl"
-          >
-            ×
-          </button>
         </div>
 
         {success && (
@@ -110,7 +104,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
         )}
 
         {error && (
-          <div className="bg-destructive/10 mb-4 p-3 border border-destructive rounded-lg text-destructive-foreground text-sm">
+          <div className="bg-destructive/10 mb-4 p-3 border border-destructive rounded-lg text-destructive dark:text-destructive-foreground text-sm">
             {error}
           </div>
         )}
