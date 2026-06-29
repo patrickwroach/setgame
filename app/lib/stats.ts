@@ -1,6 +1,6 @@
 import { db } from './firebase';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
-import { getAllCompletions } from './dailyCompletions';
+import { getAllCompletions, getCompletionStreakStats } from './dailyCompletions';
 import { getUserDataByUid } from './users';
 
 export interface UserStats {
@@ -12,6 +12,8 @@ export interface UserStats {
   bestTime: number | null;
   averageTime: number | null;
   daysWithBestTime: number;
+  currentStreak: number;
+  longestStreak: number;
   completionsByMonth: { [month: string]: number };
   recentCompletions: Array<{
     date: string;
@@ -76,7 +78,10 @@ export async function getUserStats(userId: string): Promise<UserStats> {
     .slice(0, 30);
 
   // Count days with best time
-  const daysWithBestTime = await countDaysWithBestTime(userId);
+  const [daysWithBestTime, streakStats] = await Promise.all([
+    countDaysWithBestTime(userId),
+    getCompletionStreakStats(userId),
+  ]);
 
   const userEmail = userData?.email || '';
   const displayName = userData?.displayName || userEmail.split('@')[0] || 'User';
@@ -90,6 +95,8 @@ export async function getUserStats(userId: string): Promise<UserStats> {
     bestTime,
     averageTime,
     daysWithBestTime,
+    currentStreak: streakStats.currentStreak,
+    longestStreak: streakStats.longestStreak,
     completionsByMonth,
     recentCompletions,
   };

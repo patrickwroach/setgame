@@ -304,6 +304,19 @@ export default function ProfilePage() {
           />
         </div>
 
+        <div className="gap-4 grid grid-cols-2 md:grid-cols-2">
+          <StatCard
+            label="Current Streak"
+            value={stats.currentStreak ?? 0}
+            valueColor="text-success"
+          />
+          <StatCard
+            label="Longest Streak"
+            value={stats.longestStreak ?? 0}
+            valueColor="text-primary"
+          />
+        </div>
+
  
 
         {isAdmin && (

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, findAllSets } from '../../lib/setLogic';
 import { generateDailyPuzzle, getTodayDateString } from '../../lib/dailyPuzzle';
-import { recordDailyCompletion, getTodayCompletion } from '../../lib/dailyCompletions';
+import { recordDailyCompletion, getCompletionStreak, getTodayCompletion } from '../../lib/dailyCompletions';
 import { 
   savePuzzleProgress, 
   clearPuzzleProgress, 
@@ -274,13 +274,22 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
     onTimerChange(timerStartTime, false);
     clearPuzzleProgress();
 
+    let streakMessage = '';
+
     if (user && !hasShownSets && !todayCompleted) {
       await recordDailyCompletion(user.uid, timeElapsed, false);
       setTodayCompleted(true);
       onCompletionChange(true);
+
+      const streak = await getCompletionStreak(user.uid);
+      if (streak === 1) {
+        streakMessage = ' Hell yeah, you are starting a new streak!';
+      } else if (streak > 1) {
+        streakMessage = ` 🔥 ${streak}-day streak!`;
+      }
     }
 
-    setMessage(`🎉 You found all ${setsToFind} sets in ${formatTime(timeElapsed)}!`);
+    setMessage(`🎉 You found all ${setsToFind} sets in ${formatTime(timeElapsed)}!${streakMessage}`);
   };
 
   return (
