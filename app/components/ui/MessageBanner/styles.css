@@ -1,5 +1,5 @@
 .message-banner {
-  @apply text-center text-lg font-bold mb-3 p-3 rounded-lg shrink-0;
+  @apply text-center text-lg font-bold mb-3 p-3 rounded-lg shrink-0 whitespace-pre-line;
 }
 
 .message-success {

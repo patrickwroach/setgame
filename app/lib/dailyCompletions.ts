@@ -12,8 +12,7 @@ export interface DailyCompletion {
 
 export interface UserCompletions {
   userId: string;
-  completions: { [date: string]: DailyCompletion };
-  currentStreak?: number;
+  completions: { [date: string]: DailyCompletion };  currentStreak?: number;
   longestStreak?: number;
 }
 

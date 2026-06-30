@@ -51,6 +51,7 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const lastSaveRef = useRef<number>(0);
   const accumulatedTimeRef = useRef<number>(0);
+  const [streak, setStreak] = useState<number>(0);
 
   // Get current elapsed time accounting for pauses
   const getCurrentElapsedSeconds = useCallback(() => {
@@ -155,7 +156,11 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
   useEffect(() => {
     if (user) {
       loadDailyPuzzle();
+      (async () => {
+        setStreak(await getCompletionStreak(user.uid));
+      })();
     }
+    
   }, [user]);
 
   const formatTime = (seconds: number): string => {
@@ -283,13 +288,13 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
 
       const streak = await getCompletionStreak(user.uid);
       if (streak === 1) {
-        streakMessage = ' Hell yeah, you are starting a new streak!';
+        streakMessage = 'Hell yeah, you are starting a new streak!';
       } else if (streak > 1) {
-        streakMessage = ` 🔥 ${streak}-day streak!`;
+        streakMessage = `🔥 ${streak}-day streak!`;
       }
     }
 
-    setMessage(`🎉 You found all ${setsToFind} sets in ${formatTime(timeElapsed)}!${streakMessage}`);
+    setMessage(`🎉 You found all ${setsToFind} sets in ${formatTime(timeElapsed)}!\n${streakMessage}`);
   };
 
   return (
@@ -331,7 +336,9 @@ export default function SetGame({ showingSets: externalShowingSets, onFoundSetsC
           <div className="mb-8 text-center">
             <h2 className="mb-4 font-bold text-foreground text-3xl">Daily SET Challenge</h2>
             <p className="mb-2 text-muted-foreground">{`Find all ${setsToFind} valid sets on the board`}</p>
-            <p className="text-muted-foreground text-sm">Your time starts when you click the button below</p>
+            <p className="mb-2 text-muted-foreground text-sm">Your time starts when you click the button below</p>
+            <p className="text-muted-foreground text-sm">{`Your current completion streak is ${streak}`}</p>
+            
           </div>
           <Button
             onClick={handleStartGame}
